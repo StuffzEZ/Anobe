@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Anobe</title>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Segoe UI", -apple-system, sans-serif;
+    background: #18181c;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    user-select: none;
+    cursor: default;
+  }
+  .wrap { text-align: center; width: 320px; }
+  .mark {
+    width: 72px; height: 72px; margin: 0 auto 14px;
+    border-radius: 18px;
+    background: #232329;
+    border: 3px solid #ff5a5a;
+    color: #fff; font-weight: 700; font-size: 38px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .mark::after {
+    content: ""; position: absolute; right: 9px; bottom: 10px;
+    width: 12px; height: 12px; border-radius: 50%; background: #ff5a5a;
+  }
+  h1 { font-size: 26px; font-weight: 650; letter-spacing: -0.01em; }
+  p { font-size: 12.5px; color: #b9b9c0; margin: 6px 0 20px; }
+  .track {
+    height: 5px; border-radius: 999px;
+    background: #2e2e36;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar {
+    position: absolute; top: 0; bottom: 0; width: 34%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ff5a5a, #ff9a5a);
+    animation: sweep 1.4s ease-in-out infinite;
+  }
+  @keyframes sweep {
+    0% { left: -34%; }
+    100% { left: 100%; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="mark">A</div>
+    <h1>Anobe</h1>
+    <p>Say no to Adobe — loading your creative suite…</p>
+    <div class="track"><div class="bar"></div></div>
+  </div>
+</body>
+</html>

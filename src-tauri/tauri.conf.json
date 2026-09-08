@@ -1,0 +1,54 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Anobe",
+  "version": "0.4.0",
+  "identifier": "com.anobe.hub",
+  "build": {
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Anobe — Say no to Adobe",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 1024,
+        "minHeight": 640,
+        "visible": false
+      },
+      {
+        "label": "splashscreen",
+        "title": "Anobe",
+        "url": "splash.html",
+        "width": 440,
+        "height": 300,
+        "decorations": false,
+        "resizable": false,
+        "center": true,
+        "skipTaskbar": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"]
+  },
+  "plugins": {
+    "opener": {},
+    "shell": {},
+    "fs": {},
+    "deep-link": {
+      "desktop": {
+        "schemes": ["anobe"]
+      }
+    }
+  }
+}
