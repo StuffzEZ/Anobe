@@ -6,9 +6,34 @@
   "permissions": [
     "core:default",
     "core:event:default",
+    "core:window:default",
+    "core:webview:default",
     "opener:default",
     "shell:allow-open",
     "fs:default",
+    {
+      "identifier": "fs:allow-document-read-recursive",
+      "allow": [{ "path": "$DOCUMENT/**" }]
+    },
+    {
+      "identifier": "fs:allow-download-read-recursive",
+      "allow": [{ "path": "$DOWNLOAD/**" }]
+    },
+    {
+      "identifier": "fs:allow-picture-read-recursive",
+      "allow": [{ "path": "$PICTURE/**" }]
+    },
+    {
+      "identifier": "fs:allow-desktop-read-recursive",
+      "allow": [{ "path": "$DESKTOP/**" }]
+    },
+    {
+      "identifier": "fs:allow-home-read-recursive",
+      "allow": [{ "path": "$HOME/**" }]
+    },
+    "dialog:default",
+    "updater:default",
+    "process:default",
     "deep-link:default",
     "log:default",
     "os:default",

@@ -3,11 +3,14 @@
 
 export type InstallType = "desktop" | "mobile" | "web" | "service";
 
+export type OsKey = "windows" | "macos" | "linux";
+
 export interface AltApp {
   id: string;
   adobe: string;
   adobeCode: string;
   adobeColor: string;
+  adobeIcon: string;
   alt: string;
   altColor: string;
   category: string;
@@ -18,9 +21,11 @@ export interface AltApp {
   installUrl: string;
   executables: string[];
   installType: InstallType;
+  os: OsKey[]; // supported desktop OSes; empty = web/service (all)
   popular?: boolean;
   handles: string[];
   switchSteps: string[];
+  extended: string[]; // offline essentials
 }
 
 export const CATEGORIES = [
@@ -47,16 +52,18 @@ export const APPS: AltApp[] = [
     adobe: "Photoshop",
     adobeCode: "Ps",
     adobeColor: "#31A8FF",
+    adobeIcon: "/icons/adobe/photoshop.svg",
     alt: "Affinity Photo",
     altColor: "#4DABF7",
     category: "Photo",
     description: "Raster/photo editing, retouching, compositing.",
-    website: "https://affinity.serif.com/photo/",
+    website: "https://www.affinity.studio/",
     docsUrl: "https://affinity.help/photo2/",
     icon: "/icons/photoshop.png",
-    installUrl: "https://affinity.serif.com/",
-    executables: ["Photo.exe", "AffinityPhoto2.exe"],
+    installUrl: "https://www.affinity.studio/download",
+    executables: ["Photo.exe", "AffinityPhoto2.exe", "AffinityPhoto.exe"],
     installType: "desktop",
+    os: ["windows","macos"],
     popular: true,
     handles: [".psd", ".psb", ".afphoto", ".png", ".jpg", ".tif"],
     switchSteps: [
@@ -65,22 +72,30 @@ export const APPS: AltApp[] = [
       "Export with File → Export and use the Export persona for batched sizes.",
       "PSD round-trips work, but keep a native .afphoto master copy.",
     ],
+    extended: [
+      "Use Adjustment Layers non-destructively — keep a .afphoto master.",
+      "Soft-proof with View → Soft Proof for print.",
+      "Use Export Persona for 1x/2x/3x slices.",
+      "Learn Live Filters vs destructive filters.",
+    ],
   },
   {
     id: "illustrator",
     adobe: "Illustrator",
     adobeCode: "Ai",
     adobeColor: "#FF9A00",
+    adobeIcon: "/icons/adobe/illustrator.svg",
     alt: "Affinity Designer",
     altColor: "#F76707",
     category: "Vector",
     description: "Vector graphics — logos, icons, scalable art.",
-    website: "https://affinity.serif.com/designer/",
+    website: "https://www.affinity.studio/",
     docsUrl: "https://affinity.help/designer2/",
     icon: "/icons/illustrator.png",
-    installUrl: "https://affinity.serif.com/",
-    executables: ["Designer.exe", "AffinityDesigner2.exe"],
+    installUrl: "https://www.affinity.studio/download",
+    executables: ["Designer.exe", "AffinityDesigner2.exe", "AffinityDesigner.exe"],
     installType: "desktop",
+    os: ["windows","macos"],
     popular: true,
     handles: [".ai", ".afdesign", ".svg", ".pdf", ".eps"],
     switchSteps: [
@@ -89,22 +104,29 @@ export const APPS: AltApp[] = [
       "Export logos as SVG (web) + PDF/X (print) from the Export persona.",
       "Convert text to curves (Ctrl+Return) before sharing print files.",
     ],
+    extended: [
+      "Master Pen + Shape Builder for logos.",
+      "Use Assets panel to share symbols.",
+      "Export SVG with 'Flatten transforms' off for web.",
+    ],
   },
   {
     id: "indesign",
     adobe: "InDesign",
     adobeCode: "Id",
     adobeColor: "#FF3366",
+    adobeIcon: "/icons/adobe/indesign.svg",
     alt: "Affinity Publisher",
     altColor: "#E64980",
     category: "Layout",
     description: "Page layout for print/digital publishing.",
-    website: "https://affinity.serif.com/publisher/",
+    website: "https://www.affinity.studio/",
     docsUrl: "https://affinity.help/publisher2/",
     icon: "/icons/indesign.png",
-    installUrl: "https://affinity.serif.com/",
-    executables: ["Publisher.exe", "AffinityPublisher2.exe"],
+    installUrl: "https://www.affinity.studio/download",
+    executables: ["Publisher.exe", "AffinityPublisher2.exe", "AffinityPublisher.exe"],
     installType: "desktop",
+    os: ["windows","macos"],
     popular: true,
     handles: [".indd", ".idml", ".afpub", ".pdf"],
     switchSteps: [
@@ -113,12 +135,18 @@ export const APPS: AltApp[] = [
       "Preflight with Document → Preflight and export PDF/X-4 for print.",
       "Place .afphoto / .afdesign files natively instead of flattened images.",
     ],
+    extended: [
+      "Set up Parent Pages before flowing text.",
+      "Use Text Styles → Based On for hierarchy.",
+      "Package for print via File → Package.",
+    ],
   },
   {
     id: "lightroom",
     adobe: "Lightroom / Classic",
     adobeCode: "Lr",
     adobeColor: "#31A8FF",
+    adobeIcon: "/icons/adobe/lightroom.svg",
     alt: "darktable",
     altColor: "#3B5BDB",
     category: "Photo",
@@ -129,6 +157,7 @@ export const APPS: AltApp[] = [
     installUrl: "https://www.darktable.org/install/",
     executables: ["darktable.exe", "darktable"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     popular: true,
     handles: [".dng", ".nef", ".cr2", ".cr3", ".arw", ".xmp"],
     switchSteps: [
@@ -137,12 +166,18 @@ export const APPS: AltApp[] = [
       "Copy your RAWs + .xmp sidecars together so edits travel with the files.",
       "Export with watermark/式 resize presets for web vs print.",
     ],
+    extended: [
+      "Build Smart Collections from ratings.",
+      "Use Tone Curve + HSL for skin.",
+      "Sync sidecars: .xmp travels with RAW.",
+    ],
   },
   {
     id: "premiere-pro",
     adobe: "Premiere Pro",
     adobeCode: "Pr",
     adobeColor: "#EA77FF",
+    adobeIcon: "/icons/adobe/premiere-pro.svg",
     alt: "DaVinci Resolve",
     altColor: "#9775FA",
     category: "Video",
@@ -153,6 +188,7 @@ export const APPS: AltApp[] = [
     installUrl: "https://www.blackmagicdesign.com/products/davinciresolve",
     executables: ["Resolve.exe", "Resolve"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     popular: true,
     handles: [".mp4", ".mov", ".drp", ".xml", ".srt"],
     switchSteps: [
@@ -161,12 +197,18 @@ export const APPS: AltApp[] = [
       "The free tier covers most editing + color; Studio adds noise reduction/AI tools.",
       "Set optimized media on for H.264/H.265 footage on weaker machines.",
     ],
+    extended: [
+      "Proxy H.264 to ProRes for scrub.",
+      "Use Color Wheels + Scopes.",
+      "Deliver via File → Quick Export presets.",
+    ],
   },
   {
     id: "premiere-rush",
     adobe: "Premiere Rush",
     adobeCode: "Ru",
     adobeColor: "#BB77FF",
+    adobeIcon: "/icons/adobe/premiere-rush.svg",
     alt: "Kdenlive",
     altColor: "#66D9E8",
     category: "Video",
@@ -177,6 +219,7 @@ export const APPS: AltApp[] = [
     installUrl: "https://kdenlive.org/download/",
     executables: ["kdenlive.exe", "kdenlive"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     handles: [".mp4", ".mov", ".kdenlive", ".srt"],
     switchSteps: [
       "Create 9:16 / 1:1 sequences from the project profiles for Shorts/Reels.",
@@ -184,12 +227,17 @@ export const APPS: AltApp[] = [
       "Render presets for YouTube/Vimeo live under the Render panel.",
       "Auto-transcode vertical phone footage on import to avoid rotation bugs.",
     ],
+    extended: [
+      "Keep vertical 9:16 presets handy.",
+      "Use auto-ducking for music under voice.",
+    ],
   },
   {
     id: "after-effects",
     adobe: "After Effects",
     adobeCode: "Ae",
     adobeColor: "#9999FF",
+    adobeIcon: "/icons/adobe/after-effects.svg",
     alt: "Cavalry",
     altColor: "#748FFC",
     category: "Motion",
@@ -200,6 +248,7 @@ export const APPS: AltApp[] = [
     installUrl: "https://cavalry.scenegroup.co/",
     executables: ["Cavalry.exe"],
     installType: "desktop",
+    os: ["windows","macos"],
     popular: true,
     handles: [".aep", ".mp4", ".mov", ".png"],
     switchSteps: [
@@ -208,12 +257,18 @@ export const APPS: AltApp[] = [
       "Use the free tier first; render to PNG sequence for compositing elsewhere.",
       "For heavy VFX shots, pair with Blender's compositor + tracker.",
     ],
+    extended: [
+      "Pre-comp for organization.",
+      "Use Graph Editor for easing.",
+      "Cache via Purge → All.",
+    ],
   },
   {
     id: "animate",
     adobe: "Animate",
     adobeCode: "An",
     adobeColor: "#FF4D4D",
+    adobeIcon: "/icons/adobe/animate.svg",
     alt: "Cavalry",
     altColor: "#748FFC",
     category: "Motion",
@@ -224,11 +279,16 @@ export const APPS: AltApp[] = [
     installUrl: "https://cavalry.scenegroup.co/",
     executables: ["Cavalry.exe"],
     installType: "desktop",
+    os: ["windows","macos"],
     handles: [".fla", ".svg", ".png", ".mp4"],
     switchSteps: [
       "Export Animate scenes as PNG/SVG sequences, then rig in Cavalry.",
       "For classic frame-by-frame, check OpenToonz as a companion.",
       "Publish from Cavalry to MP4/GIF for web delivery.",
+    ],
+    extended: [
+      "Use Classic Tweens for shape motion.",
+      "Export spritesheet for games.",
     ],
   },
   {
@@ -236,6 +296,7 @@ export const APPS: AltApp[] = [
     adobe: "Character Animator",
     adobeCode: "Ch",
     adobeColor: "#FF8C42",
+    adobeIcon: "/icons/adobe/character-animator.svg",
     alt: "OpenToonz",
     altColor: "#FF922B",
     category: "Motion",
@@ -246,11 +307,16 @@ export const APPS: AltApp[] = [
     installUrl: "https://opentoonz.github.io/e/",
     executables: ["OpenToonz.exe", "OpenToonz"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     handles: [".tnz", ".png", ".wav"],
     switchSteps: [
       "Export character parts as layered PSD/PNG, import as Toonz levels.",
       "Use the Plastic + Skeleton tools for puppet-style rigs.",
       "Record audio first, then lip-sync with the Rhubarb plugin workflow.",
+    ],
+    extended: [
+      "Calibrate mic + camera before rig.",
+      "Use Triggers for hands.",
     ],
   },
   {
@@ -258,6 +324,7 @@ export const APPS: AltApp[] = [
     adobe: "Audition",
     adobeCode: "Au",
     adobeColor: "#00E4BB",
+    adobeIcon: "/icons/adobe/audition.svg",
     alt: "Audacity",
     altColor: "#E64980",
     category: "Audio",
@@ -268,6 +335,7 @@ export const APPS: AltApp[] = [
     installUrl: "https://www.audacityteam.org/download/",
     executables: ["audacity.exe", "audacity"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     popular: true,
     handles: [".wav", ".mp3", ".flac", ".aup3"],
     switchSteps: [
@@ -276,12 +344,17 @@ export const APPS: AltApp[] = [
       "Export Podcast-ready MP3s and masters as 48 kHz / 24-bit WAV.",
       "For full multitrack/MIDI sessions, pair with Ardour (also in Anobe).",
     ],
+    extended: [
+      "Record at -12dB headroom.",
+      "Use Spectral Display to zap clicks.",
+    ],
   },
   {
     id: "audition-ardour",
     adobe: "Audition",
     adobeCode: "Au",
     adobeColor: "#00E4BB",
+    adobeIcon: "/icons/adobe/audition-ardour.svg",
     alt: "Ardour",
     altColor: "#D6336C",
     category: "Audio",
@@ -292,6 +365,7 @@ export const APPS: AltApp[] = [
     installUrl: "https://ardour.org/download",
     executables: ["ardour"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     popular: true,
     handles: [".ardour", ".wav", ".flac", ".mid", ".midi"],
     switchSteps: [
@@ -300,12 +374,17 @@ export const APPS: AltApp[] = [
       "Clean up individual clips first in Audacity, then mix and master in Ardour.",
       "Export stems and masters as 48 kHz / 24-bit WAV.",
     ],
+    extended: [
+      "Set up Monitor section before tracking.",
+      "Use Patch Bay for routing.",
+    ],
   },
   {
     id: "fresco",
     adobe: "Fresco",
     adobeCode: "Fr",
     adobeColor: "#5C7CFA",
+    adobeIcon: "/icons/adobe/fresco.svg",
     alt: "Krita",
     altColor: "#F783AC",
     category: "Paint",
@@ -316,6 +395,7 @@ export const APPS: AltApp[] = [
     installUrl: "https://krita.org/en/download/",
     executables: ["krita.exe", "krita"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     handles: [".kra", ".psd", ".ora", ".png"],
     switchSteps: [
       "Grab a brush bundle (e.g. Digital Atelier) to replace Fresco live brushes.",
@@ -323,12 +403,17 @@ export const APPS: AltApp[] = [
       "Enable stabilizer + pop-up palette for tablet painting.",
       "Record timelapses with the built-in recorder.",
     ],
+    extended: [
+      "Use Symmetry + Perspective guides.",
+      "Enable Brush Stabilizer.",
+    ],
   },
   {
     id: "bridge",
     adobe: "Bridge",
     adobeCode: "Br",
     adobeColor: "#F5C518",
+    adobeIcon: "/icons/adobe/bridge.svg",
     alt: "digiKam",
     altColor: "#FAB005",
     category: "Media",
@@ -339,6 +424,7 @@ export const APPS: AltApp[] = [
     installUrl: "https://www.digikam.org/download/",
     executables: ["digikam.exe", "digikam"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     handles: [".jpg", ".raw", ".xmp", ".mp4", ".pdf"],
     switchSteps: [
       "Point digiKam at your photo folders — it reads ratings/labels from Bridge.",
@@ -346,12 +432,16 @@ export const APPS: AltApp[] = [
       "Turn on XMP sidecars so tags travel to darktable and other apps.",
       "This hub's Documents tab is organized the digiKam way: by asset, not by app.",
     ],
+    extended: [
+      "Keyword on import; write to XMP.",
+    ],
   },
   {
     id: "media-encoder",
     adobe: "Media Encoder",
     adobeCode: "Me",
     adobeColor: "#A86BFF",
+    adobeIcon: "/icons/adobe/media-encoder.svg",
     alt: "HandBrake",
     altColor: "#845EF7",
     category: "Media",
@@ -362,11 +452,15 @@ export const APPS: AltApp[] = [
     installUrl: "https://handbrake.fr/downloads/",
     executables: ["HandBrake.exe", "HandBrake", "ghb"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     handles: [".mp4", ".mkv", ".mov"],
     switchSteps: [
       "Drag a whole folder in — queue replaces watch folders.",
       "Use the Production presets (H.265 10-bit) for masters, Web presets for delivery.",
       "Batch-convert Premiere/Resolve exports to lightweight H.264 for review.",
+    ],
+    extended: [
+      "Two-pass H.265 for masters.",
     ],
   },
   {
@@ -374,6 +468,7 @@ export const APPS: AltApp[] = [
     adobe: "Dimension",
     adobeCode: "Dn",
     adobeColor: "#63E6BE",
+    adobeIcon: "/icons/adobe/dimension.svg",
     alt: "Blender",
     altColor: "#E8590C",
     category: "3D",
@@ -384,6 +479,7 @@ export const APPS: AltApp[] = [
     installUrl: "https://www.blender.org/download/",
     executables: ["blender.exe", "blender"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     popular: true,
     handles: [".blend", ".obj", ".fbx", ".stl", ".png"],
     switchSteps: [
@@ -392,12 +488,16 @@ export const APPS: AltApp[] = [
       "Learn the trio: Bevel + HDRI lighting + Principled BSDF covers 80% of mockups.",
       "Poly Haven gives free HDRIs, textures and models.",
     ],
+    extended: [
+      "Use HDRI + Shadow Catcher for mockups.",
+    ],
   },
   {
     id: "xd",
     adobe: "XD",
     adobeCode: "Xd",
     adobeColor: "#FF61F6",
+    adobeIcon: "/icons/adobe/xd.svg",
     alt: "Figma",
     altColor: "#A259FF",
     category: "UX",
@@ -408,6 +508,7 @@ export const APPS: AltApp[] = [
     installUrl: "https://www.figma.com/downloads/",
     executables: ["Figma.exe", "figma"],
     installType: "desktop",
+    os: ["windows","macos"],
     handles: [".fig", ".svg", ".png"],
     switchSteps: [
       "Import XD files via the 'Import XD' community plugin or copy-paste artboards.",
@@ -415,12 +516,16 @@ export const APPS: AltApp[] = [
       "Share prototype links instead of exporting PDFs for review.",
       "The free tier covers most solo/small-team work.",
     ],
+    extended: [
+      "Component states + auto-animate for prototypes.",
+    ],
   },
   {
     id: "incopy",
     adobe: "InCopy",
     adobeCode: "Ic",
     adobeColor: "#FF6B9D",
+    adobeIcon: "/icons/adobe/incopy.svg",
     alt: "LibreOffice Writer",
     altColor: "#1971C2",
     category: "Writing",
@@ -431,11 +536,15 @@ export const APPS: AltApp[] = [
     installUrl: "https://www.libreoffice.org/download/download-libreoffice/",
     executables: ["swriter.exe", "soffice.exe", "soffice", "lowriter"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     handles: [".docx", ".odt", ".icml", ".pdf"],
     switchSteps: [
       "Write in Writer with paragraph styles mirroring your Publisher styles.",
       "Export final copy as .docx / .odt and Place into Affinity Publisher.",
       "Use Track Changes for the InCopy-style editorial round-trip.",
+    ],
+    extended: [
+      "Link InCopy stories via Assignment.",
     ],
   },
   {
@@ -443,6 +552,7 @@ export const APPS: AltApp[] = [
     adobe: "Substance 3D Painter",
     adobeCode: "Pt",
     adobeColor: "#5EDFFF",
+    adobeIcon: "/icons/adobe/substance-painter.svg",
     alt: "ArmorPaint",
     altColor: "#339AF0",
     category: "3D",
@@ -453,11 +563,15 @@ export const APPS: AltApp[] = [
     installUrl: "https://armorpaint.org/",
     executables: ["ArmorPaint.exe", "armorpaint"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     handles: [".blend", ".obj", ".fbx", ".png", ".arm"],
     switchSteps: [
       "Export models as FBX/OBJ with clean UVs from Blender.",
       "Paint PBR layers in ArmorPaint, export base-color/roughness/normal maps.",
       "Plug the maps into Blender's Principled BSDF for final render.",
+    ],
+    extended: [
+      "Bake AO/Curvature before painting.",
     ],
   },
   {
@@ -465,6 +579,7 @@ export const APPS: AltApp[] = [
     adobe: "Substance 3D Designer",
     adobeCode: "Sd",
     adobeColor: "#7DF9FF",
+    adobeIcon: "/icons/adobe/substance-designer.svg",
     alt: "Blender Shader Editor",
     altColor: "#E8590C",
     category: "3D",
@@ -475,11 +590,15 @@ export const APPS: AltApp[] = [
     installUrl: "https://www.blender.org/download/",
     executables: ["blender.exe", "blender"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     handles: [".blend", ".sbsar"],
     switchSteps: [
       "Rebuild Substance graphs with Shader Editor nodes (Noise/Musgrave ≈ generators).",
       "Use node groups as reusable 'substances' across projects.",
       "Bake procedural setups to image textures for game export.",
+    ],
+    extended: [
+      "Expose parameters for variants.",
     ],
   },
   {
@@ -487,6 +606,7 @@ export const APPS: AltApp[] = [
     adobe: "Substance 3D Sampler",
     adobeCode: "Ss",
     adobeColor: "#FFD43B",
+    adobeIcon: "/icons/adobe/substance-sampler.svg",
     alt: "Materialize",
     altColor: "#FCC419",
     category: "3D",
@@ -497,11 +617,15 @@ export const APPS: AltApp[] = [
     installUrl: "http://www.boundingboxsoftware.com/materialize/",
     executables: ["Materialize.exe"],
     installType: "desktop",
+    os: ["windows"],
     handles: [".png", ".jpg", ".tga"],
     switchSteps: [
       "Drop a front-lit photo into Materialize to generate normal/roughness/AO maps.",
       "Save the set, then use it in Blender or ArmorPaint.",
       "For full photogrammetry, pair with Meshroom (free).",
+    ],
+    extended: [
+      "Shoot with cross-polarized light for albedo.",
     ],
   },
   {
@@ -509,6 +633,7 @@ export const APPS: AltApp[] = [
     adobe: "Substance 3D Stager",
     adobeCode: "Sg",
     adobeColor: "#B197FC",
+    adobeIcon: "/icons/adobe/substance-stager.svg",
     alt: "Blender",
     altColor: "#E8590C",
     category: "3D",
@@ -519,11 +644,15 @@ export const APPS: AltApp[] = [
     installUrl: "https://www.blender.org/download/",
     executables: ["blender.exe", "blender"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     handles: [".blend", ".obj", ".fbx"],
     switchSteps: [
       "Stage scenes with linked collections instead of merging everything.",
       "Use studio HDRI + area lights for the Stager look in minutes.",
       "Render EXR for post, PNG/MP4 for delivery.",
+    ],
+    extended: [
+      "Use Physical Light for product shots.",
     ],
   },
   {
@@ -531,6 +660,7 @@ export const APPS: AltApp[] = [
     adobe: "Substance 3D Modeler",
     adobeCode: "Sm",
     adobeColor: "#FFA94D",
+    adobeIcon: "/icons/adobe/substance-modeler.svg",
     alt: "Blender Sculpt Mode",
     altColor: "#E8590C",
     category: "3D",
@@ -541,11 +671,15 @@ export const APPS: AltApp[] = [
     installUrl: "https://www.blender.org/download/",
     executables: ["blender.exe", "blender"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     handles: [".blend", ".obj", ".stl"],
     switchSteps: [
       "Start with Dyntopo, remesh at the end for clean topology.",
       "A basic pen tablet covers most sculpting; VR via Blender XR is experimental.",
       "Retopo with QuadriFlow or manual low-poly for games/printing.",
+    ],
+    extended: [
+      "DynTopo for concept, retopo after.",
     ],
   },
   {
@@ -553,6 +687,7 @@ export const APPS: AltApp[] = [
     adobe: "Acrobat Pro",
     adobeCode: "Ac",
     adobeColor: "#EC1C24",
+    adobeIcon: "/icons/adobe/acrobat.svg",
     alt: "PDF24",
     altColor: "#E03131",
     category: "PDF",
@@ -563,11 +698,15 @@ export const APPS: AltApp[] = [
     installUrl: "https://tools.pdf24.org/",
     executables: ["pdf24.exe"],
     installType: "desktop",
+    os: ["windows"],
     handles: [".pdf"],
     switchSteps: [
       "Install PDF24 Creator (Windows) for merge/split/compress/OCR; use the web tools elsewhere.",
       "Print → PDF24 printer replaces 'Save as Adobe PDF'.",
       "Password-protect and shrink PDFs from the toolbox.",
+    ],
+    extended: [
+      "Preflight PDF/X-4 before print.",
     ],
   },
   {
@@ -575,6 +714,7 @@ export const APPS: AltApp[] = [
     adobe: "Adobe Scan",
     adobeCode: "Sc",
     adobeColor: "#FF6B6B",
+    adobeIcon: "/icons/adobe/adobe-scan.svg",
     alt: "Microsoft Lens",
     altColor: "#0B6ECE",
     category: "PDF",
@@ -585,11 +725,15 @@ export const APPS: AltApp[] = [
     installUrl: "https://apps.microsoft.com/detail/9wzdncrfj3t8",
     executables: [],
     installType: "mobile",
+    os: [],
     handles: [".pdf", ".jpg"],
     switchSteps: [
       "Install Microsoft Lens (iOS/Android) and sign in with a free Microsoft account.",
       "Scan in Document mode; Lens crops, cleans and OCRs automatically.",
       "Save to OneDrive as searchable PDF, then open it with PDF24.",
+    ],
+    extended: [
+      "Scan at 300dpi for OCR.",
     ],
   },
   {
@@ -597,6 +741,7 @@ export const APPS: AltApp[] = [
     adobe: "Fill & Sign",
     adobeCode: "Fs",
     adobeColor: "#4DABF7",
+    adobeIcon: "/icons/adobe/fill-sign.svg",
     alt: "DocHub",
     altColor: "#228BE6",
     category: "PDF",
@@ -607,11 +752,15 @@ export const APPS: AltApp[] = [
     installUrl: "https://dochub.com/",
     executables: [],
     installType: "web",
+    os: [],
     handles: [".pdf"],
     switchSteps: [
       "Upload the PDF to DocHub (free tier) in your browser.",
       "Add text fields, checkmarks and a saved signature.",
       "Download or send the signed copy; no install needed.",
+    ],
+    extended: [
+      "Save signature as vector.",
     ],
   },
   {
@@ -619,6 +768,7 @@ export const APPS: AltApp[] = [
     adobe: "Adobe Stock",
     adobeCode: "St",
     adobeColor: "#0B5CAB",
+    adobeIcon: "/icons/adobe/stock.svg",
     alt: "Pexels",
     altColor: "#05A081",
     category: "Assets",
@@ -629,11 +779,15 @@ export const APPS: AltApp[] = [
     installUrl: "https://www.pexels.com/",
     executables: [],
     installType: "web",
+    os: [],
     handles: [".jpg", ".mp4"],
     switchSteps: [
       "Search Pexels for photos/video; everything is free for commercial use.",
       "Attribute when nice, but the license doesn't require it.",
       "Save brand packs as collections for the team.",
+    ],
+    extended: [
+      "Keep collections per campaign.",
     ],
   },
   {
@@ -641,6 +795,7 @@ export const APPS: AltApp[] = [
     adobe: "Adobe Fonts",
     adobeCode: "Fo",
     adobeColor: "#1E8E3E",
+    adobeIcon: "/icons/adobe/fonts.svg",
     alt: "Google Fonts",
     altColor: "#EA4335",
     category: "Assets",
@@ -651,11 +806,15 @@ export const APPS: AltApp[] = [
     installUrl: "https://fonts.google.com/",
     executables: [],
     installType: "service",
+    os: [],
     handles: [".ttf", ".otf", ".woff2"],
     switchSteps: [
       "Browse Google Fonts, download families or use the desktop app (SkyFonts-style).",
       "Install TTF/OTF system-wide so every replacement app sees them.",
       "Match Adobe Fonts picks with the 'alternatives' suggestions on each family page.",
+    ],
+    extended: [
+      "Variable fonts save bytes.",
     ],
   },
   {
@@ -663,6 +822,7 @@ export const APPS: AltApp[] = [
     adobe: "Frame.io",
     adobeCode: "F.io",
     adobeColor: "#7B61FF",
+    adobeIcon: "/icons/adobe/frameio.svg",
     alt: "Frame.io (free tier)",
     altColor: "#7B61FF",
     category: "Video",
@@ -673,11 +833,15 @@ export const APPS: AltApp[] = [
     installUrl: "https://www.frame.io/",
     executables: [],
     installType: "web",
+    os: [],
     handles: [".mp4", ".mov"],
     switchSteps: [
       "Keep using Frame.io's free tier — upload Resolve/Kdenlive exports directly.",
       "Collect timestamped comments, then address them back in your editor.",
       "DaVinci Resolve Studio can review Frame.io comments inline.",
+    ],
+    extended: [
+      "Upload proxies for review, not masters.",
     ],
   },
   {
@@ -685,6 +849,7 @@ export const APPS: AltApp[] = [
     adobe: "Behance",
     adobeCode: "Be",
     adobeColor: "#1769FF",
+    adobeIcon: "/icons/adobe/behance.svg",
     alt: "ArtStation",
     altColor: "#13AFF0",
     category: "Assets",
@@ -695,11 +860,15 @@ export const APPS: AltApp[] = [
     installUrl: "https://www.artstation.com/",
     executables: [],
     installType: "web",
+    os: [],
     handles: [".jpg", ".png", ".mp4"],
     switchSteps: [
       "Create an ArtStation portfolio and re-upload your best Behance projects.",
       "Use WIP shots and breakdowns — they perform best for creative hiring.",
       "Link your new static portfolio site as the canonical home.",
+    ],
+    extended: [
+      "Case study = Process + Result.",
     ],
   },
   {
@@ -707,6 +876,7 @@ export const APPS: AltApp[] = [
     adobe: "Portfolio",
     adobeCode: "Pf",
     adobeColor: "#845EF7",
+    adobeIcon: "/icons/adobe/portfolio.svg",
     alt: "Static site (Hugo)",
     altColor: "#FF4088",
     category: "Web",
@@ -717,11 +887,15 @@ export const APPS: AltApp[] = [
     installUrl: "https://gohugo.io/installation/",
     executables: ["hugo.exe", "hugo"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     handles: [".md", ".html"],
     switchSteps: [
       "Install Hugo and pick a portfolio theme.",
       "Export Portfolio pages to images/text, paste into Markdown projects.",
       "Deploy free on GitHub Pages / Netlify / Cloudflare Pages.",
+    ],
+    extended: [
+      "Ship on Cloudflare Pages — free TLS.",
     ],
   },
   {
@@ -729,20 +903,25 @@ export const APPS: AltApp[] = [
     adobe: "Photoshop Elements",
     adobeCode: "PE",
     adobeColor: "#31A8FF",
+    adobeIcon: "/icons/adobe/photoshop-elements.svg",
     alt: "Affinity Photo",
     altColor: "#4DABF7",
     category: "Photo",
     description: "Consumer-simplified Photoshop.",
-    website: "https://affinity.serif.com/photo/",
+    website: "https://www.affinity.studio/",
     docsUrl: "https://affinity.help/photo2/",
     icon: "/icons/photoshop-elements.png",
-    installUrl: "https://affinity.serif.com/",
+    installUrl: "https://www.affinity.studio/download",
     executables: ["Photo.exe", "AffinityPhoto2.exe"],
     installType: "desktop",
+    os: ["windows","macos"],
     handles: [".psd", ".afphoto", ".jpg"],
     switchSteps: [
       "Affinity Photo's Quick personas cover all Elements-style guided edits.",
       "Use macros to replay one-click effects.",
+    ],
+    extended: [
+      "Use Guided Edits then manual.",
     ],
   },
   {
@@ -750,6 +929,7 @@ export const APPS: AltApp[] = [
     adobe: "Premiere Elements",
     adobeCode: "PE",
     adobeColor: "#EA77FF",
+    adobeIcon: "/icons/adobe/premiere-elements.svg",
     alt: "Kdenlive",
     altColor: "#66D9E8",
     category: "Video",
@@ -760,10 +940,14 @@ export const APPS: AltApp[] = [
     installUrl: "https://kdenlive.org/download/",
     executables: ["kdenlive.exe", "kdenlive"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     handles: [".mp4", ".kdenlive"],
     switchSteps: [
       "Kdenlive's wizards + title templates replace Elements guided edits.",
       "Start from a 1080p30 template project and swap in your clips.",
+    ],
+    extended: [
+      "Use quick templates then refine.",
     ],
   },
   {
@@ -771,21 +955,26 @@ export const APPS: AltApp[] = [
     adobe: "Experience Cloud",
     adobeCode: "Ec",
     adobeColor: "#EB1000",
-    alt: "WordPress",
-    altColor: "#21759B",
+    adobeIcon: "/icons/adobe/experience-cloud.svg",
+    alt: "Strapi",
+    altColor: "#4945FF",
     category: "Web",
-    description: "CMS / marketing-campaign management.",
-    website: "https://wordpress.org/",
-    docsUrl: "https://wordpress.org/documentation/",
+    description: "Headless CMS — API-first content + marketing pages (AEM pattern).",
+    website: "https://strapi.io/",
+    docsUrl: "https://docs.strapi.io/",
     icon: "/icons/experience-cloud.svg",
-    installUrl: "https://wordpress.org/",
+    installUrl: "https://strapi.io/",
     executables: [],
     installType: "service",
-    handles: [".html", ".php"],
+    os: [],
+    handles: [".html", ".json", ".md"],
     switchSteps: [
-      "Spin up WordPress (hosted or self-hosted) with WooCommerce if needed.",
-      "Use forms + analytics plugins to replace campaign landing flows.",
-      "Export content as needed; no vendor lock-in.",
+      "Install Strapi (self-hosted, MIT-licensed) — npx create-strapi-app@latest.",
+      "Model your AEM content types as Strapi collection/types + components.",
+      "Expose REST/GraphQL APIs and plug any frontend (Next.js, Hugo) — no plugin paywall.",
+    ],
+    extended: [
+      "Content model first, UI second.",
     ],
   },
   {
@@ -793,6 +982,7 @@ export const APPS: AltApp[] = [
     adobe: "Connect",
     adobeCode: "Co",
     adobeColor: "#FF9A00",
+    adobeIcon: "/icons/adobe/connect.svg",
     alt: "Jitsi Meet",
     altColor: "#1D76DB",
     category: "Web",
@@ -803,11 +993,15 @@ export const APPS: AltApp[] = [
     installUrl: "https://meet.jit.si/",
     executables: [],
     installType: "web",
+    os: [],
     handles: [],
     switchSteps: [
       "Start rooms instantly at meet.jit.si — no account needed.",
       "Share screen + record to Dropbox for classes.",
       "Self-host Jitsi for branded classrooms.",
+    ],
+    extended: [
+      "Record to MP4 for archive.",
     ],
   },
   {
@@ -815,21 +1009,26 @@ export const APPS: AltApp[] = [
     adobe: "ColdFusion",
     adobeCode: "Cf",
     adobeColor: "#2D9CDB",
-    alt: "Node.js",
-    altColor: "#339933",
+    adobeIcon: "/icons/adobe/coldfusion.svg",
+    alt: "Lucee",
+    altColor: "#2E7D32",
     category: "Web",
-    description: "Server-side web app platform.",
-    website: "https://nodejs.org/",
-    docsUrl: "https://nodejs.org/docs/latest/api/",
+    description: "CFML-compatible server — drop-in free replacement for ColdFusion.",
+    website: "https://lucee.org/",
+    docsUrl: "https://docs.lucee.org/",
     icon: "/icons/coldfusion.svg",
-    installUrl: "https://nodejs.org/en/download",
-    executables: ["node.exe", "node"],
+    installUrl: "https://download.lucee.org/",
+    executables: ["lucee"],
     installType: "desktop",
-    handles: [".js", ".ts", ".cfm"],
+    os: ["windows","macos","linux"],
+    handles: [".cfm", ".cfc"],
     switchSteps: [
-      "Install Node.js LTS, then Express/Fastify for CFML-style routes.",
-      "Port <cfquery> blocks to a query builder (Knex/Prisma).",
-      "Run behind any host; deploy as containers.",
+      "Install Lucee (open-source CFML) — runs your .cfm/.cfc with almost no rewrite.",
+      "Point it at your existing cfscripts and <cfquery> tags; tweak datasources as needed.",
+      "Deploy as WAR/JAR or Docker; keep Adobe CFML, ditch the license.",
+    ],
+    extended: [
+      "Use ORM for cfquery migration.",
     ],
   },
   {
@@ -837,6 +1036,7 @@ export const APPS: AltApp[] = [
     adobe: "RoboHelp / FrameMaker",
     adobeCode: "Rh",
     adobeColor: "#8E44AD",
+    adobeIcon: "/icons/adobe/robohelp.svg",
     alt: "Sphinx",
     altColor: "#5B3E8C",
     category: "Docs",
@@ -847,11 +1047,15 @@ export const APPS: AltApp[] = [
     installUrl: "https://www.sphinx-doc.org/",
     executables: ["sphinx-build.exe", "sphinx-build"],
     installType: "desktop",
+    os: ["windows","macos","linux"],
     handles: [".rst", ".md", ".html"],
     switchSteps: [
       "Write docs in Markdown/reStructuredText with Sphinx + MyST.",
       "Version with Git; publish with Read the Docs or GitHub Pages.",
       "Single-source to HTML + PDF from one codebase.",
+    ],
+    extended: [
+      "Single-source to HTML+PDF.",
     ],
   },
   {
@@ -859,6 +1063,7 @@ export const APPS: AltApp[] = [
     adobe: "Captivate",
     adobeCode: "Cp",
     adobeColor: "#E67E22",
+    adobeIcon: "/icons/adobe/captivate.svg",
     alt: "H5P",
     altColor: "#1A73D9",
     category: "Docs",
@@ -869,11 +1074,15 @@ export const APPS: AltApp[] = [
     installUrl: "https://h5p.org/",
     executables: [],
     installType: "web",
+    os: [],
     handles: [".html", ".mp4"],
     switchSteps: [
       "Use H5P (WordPress/Moodle/Drupal plugin or h5p.com) for quizzes, branching, video interactions.",
       "Import Captivate videos/slides as source media.",
       "Publish with xAPI tracking to your LMS.",
+    ],
+    extended: [
+      "Chunk courses into 5-min blocks.",
     ],
   },
 ];

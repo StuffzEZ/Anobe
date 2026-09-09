@@ -84,6 +84,9 @@ export type ChildKind = "installer" | "webapp" | "docssite";
 export interface ChildRef {
   id: string;
   title: string;
+  adobe?: string;
+  icon?: string;
+  adobeIcon?: string;
 }
 
 export async function openChildWindow(kind: ChildKind, ref: ChildRef, url: string): Promise<void> {
@@ -91,20 +94,20 @@ export async function openChildWindow(kind: ChildKind, ref: ChildRef, url: strin
     window.open(url, "_blank", "noopener,noreferrer");
     return;
   }
-  await invoke("open_child_window", { kind, appId: ref.id, title: ref.title, url });
+  await invoke("open_child_window", { kind, appId: ref.id, title: ref.title, adobe: ref.adobe ?? null, adobeIcon: ref.adobeIcon ?? null, icon: ref.icon ?? null, url });
 }
 
 /** "Anobe App Installer - {app}": webview of the official install page. Never silent. */
 export const openInstaller = (app: AltApp): Promise<void> =>
-  openChildWindow("installer", { id: app.id, title: app.alt }, app.installUrl);
+  openChildWindow("installer", { id: app.id, title: app.alt, adobe: app.adobe, icon: app.icon, adobeIcon: (app as any).adobeIcon }, app.installUrl);
 
 /** "Anobe Webapp - {app}": the web app integrated into its own window. */
 export const openWebApp = (app: AltApp): Promise<void> =>
-  openChildWindow("webapp", { id: app.id, title: app.alt }, app.website);
+  openChildWindow("webapp", { id: app.id, title: app.alt, adobe: app.adobe, icon: app.icon, adobeIcon: (app as any).adobeIcon }, app.website);
 
 /** "Anobe Docs - {app}": official docs site in its own webview. */
 export const openDocsSite = (app: AltApp): Promise<void> =>
-  openChildWindow("docssite", { id: app.id, title: app.alt }, app.docsUrl);
+  openChildWindow("docssite", { id: app.id, title: app.alt, adobe: app.adobe, icon: app.icon, adobeIcon: (app as any).adobeIcon }, app.docsUrl);
 
 export type DocsTab = "guide" | "docs";
 
@@ -305,6 +308,27 @@ export async function revealInDir(path: string): Promise<void> {
   await revealItemInDir(path);
 }
 
+export interface DetectRequest {
+  id: string;
+  executables: string[];
+  alt: string;
+}
+
+export interface DetectResult {
+  id: string;
+  installed: boolean;
+  path: string | null;
+}
+
+export async function detectInstalled(requests: DetectRequest[]): Promise<DetectResult[]> {
+  if (!isTauri()) return [];
+  try {
+    return await invoke<DetectResult[]>("detect_installed", { requests });
+  } catch {
+    return [];
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Deep links: anobe://open/<id> | install/<id> | docs[/<id>] | apps | documents
 // ---------------------------------------------------------------------------
@@ -362,7 +386,17 @@ export async function getSystemInfo(): Promise<SystemInfo> {
     try {
       const os = await import("@tauri-apps/plugin-os");
       const [platform, version, arch] = await Promise.all([os.platform(), os.version(), os.arch()]);
-      osLabel = `${platform} ${version} (${arch})`;
+      let displayVersion = version;
+      // Windows 11 still reports as 10.0.x with build >= 22000 — fix the label
+      if (platform === "windows") {
+        const m = version.match(/^10\.0\.(\d+)/);
+        if (m) {
+          const build = parseInt(m[1], 10);
+          if (build >= 22000) displayVersion = version.replace(/^10\.0\./, "11.");
+          // 26100+ is 24H2, but still 11
+        }
+      }
+      osLabel = `${platform} ${displayVersion} (${arch})`;
     } catch {
       /* keep browser fallback */
     }

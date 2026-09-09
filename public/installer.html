@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Anobe Installer</title>
+<style>
+  *{box-sizing:border-box;margin:0}
+  html,body{height:100%;overflow:hidden}
+  body{font-family:"Segoe UI",system-ui,sans-serif;background:#f5f5f7;color:#201f1e;display:flex;flex-direction:column}
+  #banner{flex:0 0 auto;background:#001E36;color:#fff;display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:2px solid #31A8FF}
+  #banner .chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:3px 10px;font-weight:600;font-size:12px;letter-spacing:.02em}
+  #banner .titles{flex:1;min-width:0}
+  #banner .t1{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #banner .t2{font-size:11px;color:#c7d7f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #banner a{color:#8ec7ff;text-decoration:none;font-weight:600;font-size:12px;white-space:nowrap}
+  #banner a:hover{text-decoration:underline}
+  #frameWrap{flex:1;position:relative;background:#fff;display:flex}
+  #extFrame{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+  #fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:24px;text-align:center;background:#faf9f8}
+  #fallback p{color:#605e5c;max-width:520px;font-size:13px}
+  .btn{border:1px solid #d2d0ce;background:#fff;border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:13px}
+  .btn.primary{background:#0f6cbd;border-color:#115ea3;color:#fff}
+  .btn.primary:hover{background:#115ea3}
+  #installedView{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:32px 24px;background:#faf9f8;text-align:center}
+  #installedView img{border-radius:18px;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+  #installedView h2{font-size:20px;font-weight:700;margin:0}
+  #installedView .sub{font-size:12px;color:#605e5c}
+  #infoModal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:10;padding:20px}
+  #infoBox{background:#fff;border-radius:10px;padding:20px;max-width:520px;width:100%;box-shadow:0 10px 32px rgba(0,0,0,.2)}
+  #infoBox h3{margin:0 0 8px;font-size:15px}
+  #infoBox p{font-size:12px;color:#605e5c;margin:4px 0;word-break:break-all}
+  #progressBar{position:fixed;top:0;left:0;height:2px;width:0;background:#31A8FF;transition:width .2s;z-index:20}
+</style>
+</head>
+<body>
+  <div id="progressBar"></div>
+  <div id="banner">
+    <span class="chip" id="archChip">detecting…</span>
+    <span class="chip" id="osChip">detecting…</span>
+    <div class="titles">
+      <div class="t1" id="titleEl">Anobe App Installer</div>
+      <div class="t2" id="subtitleEl"></div>
+    </div>
+    <a href="#" id="openExternal">Open in browser ↗</a>
+    <button class="btn" id="markDoneBtn" style="margin-left:8px;padding:4px 10px;font-size:12px">I’ve downloaded it ✓</button>
+  </div>
+  <div id="frameWrap">
+    <iframe id="extFrame" referrerpolicy="no-referrer" allow="fullscreen"></iframe>
+    <div id="fallback">
+      <h3 style="margin:0">This site can’t be shown inside Anobe</h3>
+      <p>The download page blocks embedded views (X-Frame-Options). Open it in your browser instead — the banner still tells you which build to pick.</p>
+      <button class="btn primary" id="fallbackOpen">Open in browser</button>
+    </div>
+  </div>
+  <div id="installedView">
+    <img id="installedIcon" width="96" height="96" alt="" />
+    <h2 id="installedTitle">Anobe App Installer, App Installed</h2>
+    <div class="sub" id="installedSub"></div>
+    <p style="font-size:13px;color:#201f1e">Do you want to open the installer?</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+      <button class="btn primary" id="openInstallerBtn">Open installer</button>
+      <button class="btn" id="virusTotalBtn">Scan with VirusTotal</button>
+      <button class="btn" id="infoBtn">Information</button>
+      <button class="btn" id="backBtn">Back to download page</button>
+    </div>
+  </div>
+  <div id="infoModal">
+    <div id="infoBox">
+      <h3>Download information</h3>
+      <p><b>App:</b> <span id="infoApp"></span></p>
+      <p><b>Adobe counterpart:</b> <span id="infoAdobe"></span></p>
+      <p><b>Download page:</b> <span id="infoUrl" style="color:#0f6cbd"></span></p>
+      <p><b>Your system:</b> <span id="infoSys"></span></p>
+      <p><b>File location:</b> Your browser’s Downloads folder (e.g. %USERPROFILE%\Downloads). Use “Open installer” to reveal it.</p>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button class="btn" id="infoClose">Close</button>
+        <button class="btn primary" id="infoVirus">Scan with VirusTotal</button>
+      </div>
+    </div>
+  </div>
+<script type="module">
+  const qs = new URLSearchParams(location.search);
+  const rawUrl = qs.get('url') || '';
+  const title = qs.get('title') || 'App';
+  const adobe = qs.get('adobe') || '';
+  const icon = qs.get('icon') || '';
+  const adobeIcon = qs.get('adobeIcon') || '';
+  const osHint = qs.get('os') || navigator.platform || 'Unknown OS';
+  const archHint = qs.get('arch') || (navigator.userAgent.includes('ARM') ? 'arm' : 'x64');
+  const osver = qs.get('osver') || '';
+  const archLabel = (a)=>{a=(a||'').toLowerCase(); if(a.includes('aarch64')||a.includes('arm64')||a.includes('arm')) return 'ARM'; if(a.includes('x86_64')||a.includes('x64')||a.includes('amd64')||a.includes('x86')) return 'Intel/AMD'; return a||'Unknown CPU';};
+  const osLabel = (o, ver)=>{
+    const s=(o||'').toLowerCase();
+    let base = s.includes('windows') ? 'Windows' : s.includes('macos')||s.includes('darwin') ? 'macOS' : s.includes('linux') ? 'Linux' : o;
+    if(base==='Windows' && ver){
+      const m = ver.match(/^10\.0\.(\d+)/);
+      if(m && parseInt(m[1],10) >= 22000) ver = ver.replace(/^10\.0\./,'11.');
+    }
+    return base + (ver ? ' ' + ver : '');
+  };
+  document.getElementById('archChip').textContent = archLabel(archHint);
+  document.getElementById('osChip').textContent = osLabel(osHint, osver);
+  // Enrich with real version from plugin-os if available (fixes Win10→11)
+  (async ()=>{
+    try{
+      const os = await import('@tauri-apps/plugin-os').catch(()=>null);
+      if(os && os.version){
+        const v = await os.version();
+        const p = await os.platform();
+        document.getElementById('osChip').textContent = osLabel(p||osHint, v);
+      }
+    }catch{}
+  })();
+  document.getElementById('titleEl').textContent = 'Anobe App Installer';
+  document.getElementById('subtitleEl').textContent = title + (adobe ? ' — ' + adobe : '');
+
+  const frame = document.getElementById('extFrame');
+  const fallback = document.getElementById('fallback');
+  const frameWrap = document.getElementById('frameWrap');
+  const installedView = document.getElementById('installedView');
+  const bannerTitle = document.getElementById('titleEl');
+  const bannerSub = document.getElementById('subtitleEl');
+  let loaded=false;
+  let decodedUrl='';
+  if(rawUrl){
+    try{
+      decodedUrl = decodeURIComponent(rawUrl);
+      frame.src = decodedUrl;
+      const openExt = ()=>openExternal(decodedUrl);
+      document.getElementById('openExternal').onclick = (e)=>{e.preventDefault(); openExt();};
+      document.getElementById('fallbackOpen').onclick = openExt;
+      setTimeout(()=>{ if(!loaded) fallback.style.display='flex'; }, 3500);
+      frame.onload = ()=>{ loaded=true; fallback.style.display='none'; document.getElementById('progressBar').style.width='100%'; setTimeout(()=>document.getElementById('progressBar').style.opacity='0',400); };
+      frame.onerror = ()=>{ fallback.style.display='flex'; };
+    }catch{}
+  }
+  async function openExternal(url){
+    try{
+      const mod = await import('@tauri-apps/plugin-opener').catch(()=>null);
+      if(mod && mod.openUrl) await mod.openUrl(url);
+      else if(window.__TAURI__?.opener?.openUrl) await window.__TAURI__.opener.openUrl(url);
+      else window.open(url,'_blank');
+    }catch{ window.open(url,'_blank'); }
+  }
+  // Mark downloaded -> installed view
+  function showInstalled(){
+    frameWrap.style.display='none';
+    fallback.style.display='none';
+    installedView.style.display='flex';
+    bannerTitle.textContent = 'Anobe App Installer, ' + title + ' Installed';
+    bannerSub.textContent = adobe ? adobe : '';
+    const ic = document.getElementById('installedIcon');
+    // Prefer replacement icon, fallback to adobe icon
+    const chosen = icon || adobeIcon || '';
+    if(chosen) ic.src = decodeURIComponent(chosen);
+    else ic.style.display='none';
+    document.getElementById('installedTitle').textContent = 'Anobe App Installer, ' + title + ' Installed';
+    document.getElementById('installedSub').textContent = adobe || '';
+    // Also update window title via Tauri
+    try{ window.__TAURI__.window.getCurrentWindow().then(w=>w.setTitle('Anobe App Installer, ' + title + ' Installed')); }catch{}
+  }
+  document.getElementById('markDoneBtn').onclick = showInstalled;
+  // Also auto-show if we detect a download via Tauri event (if emitted)
+  try{
+    const { listen } = await import('@tauri-apps/api/event').catch(()=>({listen:async()=>()=>{}}));
+    await listen('anobe:downloaded', ()=>showInstalled());
+  }catch{}
+
+  // Buttons in installed view
+  document.getElementById('openInstallerBtn').onclick = async ()=>{
+    try{
+      const { invoke } = await import('@tauri-apps/api/core');
+      const last = await invoke('get_last_download').catch(()=>null);
+      const { revealItemInDir } = await import('@tauri-apps/plugin-opener').catch(()=>({revealItemInDir: null}));
+      if(last && revealItemInDir){
+        await revealItemInDir(last);
+        return;
+      }
+      if(revealItemInDir){
+        const dl = await invoke('get_downloads_dir').catch(()=>null);
+        if(dl) await revealItemInDir(dl);
+        else window.open(decodedUrl,'_blank');
+      } else {
+        window.open(decodedUrl,'_blank');
+      }
+    }catch{
+      window.open(decodedUrl,'_blank');
+    }
+  };
+  document.getElementById('virusTotalBtn').onclick = async ()=>{
+    try{
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('scan_with_virustotal', { path: null });
+    }catch{
+      openExternal('https://www.virustotal.com/gui/home/upload');
+    }
+  };
+  document.getElementById('infoVirus').onclick = async ()=>{
+    try{
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('scan_with_virustotal', { path: null });
+    }catch{
+      openExternal('https://www.virustotal.com/gui/home/upload');
+    }
+  };
+  document.getElementById('infoBtn').onclick = ()=>{
+    document.getElementById('infoApp').textContent = title;
+    document.getElementById('infoAdobe').textContent = adobe || '—';
+    document.getElementById('infoUrl').textContent = decodedUrl || rawUrl;
+    document.getElementById('infoSys').textContent = osLabel(osHint) + ' / ' + archLabel(archHint) + (osver ? ' ' + osver : '');
+    document.getElementById('infoModal').style.display='flex';
+  };
+  document.getElementById('infoClose').onclick = ()=>document.getElementById('infoModal').style.display='none';
+  document.getElementById('infoModal').onclick = (e)=>{ if(e.target.id==='infoModal') e.currentTarget.style.display='none'; };
+  document.getElementById('backBtn').onclick = ()=>{
+    installedView.style.display='none';
+    frameWrap.style.display='flex';
+    bannerTitle.textContent = 'Anobe App Installer';
+    bannerSub.textContent = title + (adobe ? ' — ' + adobe : '');
+  };
+</script>
+</body>
+</html>

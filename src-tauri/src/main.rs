@@ -6,6 +6,7 @@ use std::process::Command;
 use std::sync::Mutex;
 use tauri::{image::Image, AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_deep_link::DeepLinkExt;
+use tauri_plugin_dialog::DialogExt;
 
 #[derive(Serialize)]
 struct DocFile {
@@ -565,25 +566,45 @@ fn apply_icon(app: &AppHandle, label: &str, app_id: Option<&str>) {
 }
 
 #[tauri::command]
-fn open_child_window(
+async fn open_child_window(
     app: AppHandle,
     kind: String,
     app_id: String,
     title: String,
+    adobe: Option<String>,
+    icon: Option<String>,
+    adobe_icon: Option<String>,
     url: String,
 ) -> Result<String, String> {
-    log::info!("open_child_window kind={kind} app={app_id} url={url}");
-    open_child_window_inner(&app, &kind, &app_id, &title, &url).map_err(|e| {
+    log::info!("open_child_window kind={kind} app={app_id} url={url} adobe={:?}", adobe);
+    // Yield so the IPC reply isn't blocked behind WebView init.
+    // WebView2 creation must happen on the main thread; Tauri marshals it.
+    let res = open_child_window_inner_ext(&app, &kind, &app_id, &title, adobe.as_deref(), icon.as_deref(), adobe_icon.as_deref(), &url);
+    if let Err(ref e) = res {
         log::warn!("open_child_window failed: {e}");
-        e
-    })
+    }
+    res
 }
 
+#[allow(dead_code)]
 fn open_child_window_inner(
     app: &AppHandle,
     kind: &str,
     app_id: &str,
     title: &str,
+    url: &str,
+) -> Result<String, String> {
+    open_child_window_inner_ext(app, kind, app_id, title, None, None, None, url)
+}
+
+fn open_child_window_inner_ext(
+    app: &AppHandle,
+    kind: &str,
+    app_id: &str,
+    title: &str,
+    adobe: Option<&str>,
+    icon: Option<&str>,
+    adobe_icon: Option<&str>,
     url: &str,
 ) -> Result<String, String> {
     let label = format!("{kind}-{app_id}");
@@ -597,15 +618,98 @@ fn open_child_window_inner(
         "docssite" => format!("Anobe Docs - {title}"),
         _ => format!("Anobe - {title}"),
     };
+    // Installer gets a local wrapper with an arch/OS banner + iframe.
+    // That way the banner is a separate visual area and the user always
+    // knows which build to pick (Intel/AMD vs ARM, Windows vs macOS/Linux).
+    if kind == "installer" {
+        let os = std::env::consts::OS;
+        let arch = std::env::consts::ARCH;
+        // Try to enrich OS with version via os plugin if available
+        let osver = "";
+        let enc = |s: &str| url::form_urlencoded::byte_serialize(s.as_bytes()).collect::<String>();
+        let wrapper = format!(
+            "installer.html?url={}&title={}&adobe={}&icon={}&adobeIcon={}&os={}&arch={}&osver={}",
+            enc(url), enc(title), enc(adobe.unwrap_or("")), enc(icon.unwrap_or("")), enc(adobe_icon.unwrap_or("")), os, arch, osver
+        );
+        let win = WebviewWindowBuilder::new(app, &label, WebviewUrl::App(wrapper.into()))
+            .title(&win_title)
+            .inner_size(1120.0, 780.0)
+            .min_inner_size(820.0, 560.0)
+            .center()
+            .visible(true)
+            .on_download({
+                let label_for_dl = label.clone();
+                move |webview: tauri::Webview<tauri::Wry>, event: tauri::webview::DownloadEvent<'_>| {
+                    match event {
+                        tauri::webview::DownloadEvent::Requested { url, destination } => {
+                            log::info!("download requested {} -> {:?}", url, destination);
+                            let original = url.path_segments().and_then(|s| s.last()).unwrap_or("download").to_string();
+                            let (stem, ext) = match original.rfind('.') {
+                                Some(idx) if idx > 0 => (&original[..idx], &original[idx..]),
+                                _ => (original.as_str(), ""),
+                            };
+                            let anobe_name = format!("{}_Anobe{}", stem, ext);
+                            let downloads_dir = webview
+                                .app_handle()
+                                .path()
+                                .download_dir()
+                                .unwrap_or_else(|_| dirs_home().unwrap_or(std::path::PathBuf::from(".")) .join("Downloads"));
+                            let picked = webview
+                                .app_handle()
+                                .dialog()
+                                .file()
+                                .set_directory(&downloads_dir)
+                                .set_file_name(&anobe_name)
+                                .blocking_save_file();
+                            if let Some(path) = picked {
+                                *destination = std::path::PathBuf::from(path.to_string());
+                                log::info!("download save-as: {:?}", destination);
+                                true
+                            } else {
+                                log::info!("download cancelled");
+                                false
+                            }
+                        }
+                        tauri::webview::DownloadEvent::Finished { url, path, success } => {
+                            log::info!("download finished {} -> {:?} success={}", url, path, success);
+                            if success {
+                                if let Some(p) = path {
+                                    if let Some(state) = webview.app_handle().try_state::<LastDownload>() {
+                                        *state.0.lock().unwrap() = Some(p.to_string_lossy().to_string());
+                                    }
+                                    let _ = webview.emit("anobe:downloaded", serde_json::json!({"path": p.to_string_lossy()}));
+                                    if let Some(w) = webview.app_handle().get_webview_window(&label_for_dl) {
+                                        let _ = w.set_focus();
+                                    }
+                                }
+                            }
+                            true
+                        }
+                        _ => true,
+                    }
+                }
+            })
+            .build()
+            .map_err(|e| e.to_string())?;
+        log::info!("installer wrapper built: {label} url={url} arch={arch} os={os}");
+        apply_icon(app, &label, Some(app_id));
+        let _ = win.show();
+        let _ = win.set_focus();
+        return Ok("opened".into());
+    }
     let parsed: url::Url = url.parse().map_err(|e: url::ParseError| e.to_string())?;
-    WebviewWindowBuilder::new(app, &label, WebviewUrl::External(parsed))
+    let win = WebviewWindowBuilder::new(app, &label, WebviewUrl::External(parsed))
         .title(&win_title)
         .inner_size(1120.0, 780.0)
         .min_inner_size(820.0, 560.0)
         .center()
+        .visible(true)
         .build()
         .map_err(|e| e.to_string())?;
+    log::info!("child window built: {label}");
     apply_icon(app, &label, Some(app_id));
+    let _ = win.show();
+    let _ = win.set_focus();
     Ok("opened".into())
 }
 
@@ -618,15 +722,16 @@ struct PendingDoc {
 struct PendingDocState(Mutex<Option<PendingDoc>>);
 
 #[tauri::command]
-fn open_docs_window(
+async fn open_docs_window(
     app: AppHandle,
     app_id: Option<String>,
     tab: Option<String>,
 ) -> Result<String, String> {
-    show_docs_window_inner(&app, app_id, tab).map_err(|e| {
+    let res = show_docs_window_inner(&app, app_id, tab);
+    if let Err(ref e) = res {
         log::warn!("open_docs_window failed: {e}");
-        e
-    })
+    }
+    res
 }
 
 fn show_docs_window_inner(
@@ -655,14 +760,19 @@ fn show_docs_window_inner(
         return Ok("focused".into());
     }
     log::info!("creating Anobe Docs window");
-    WebviewWindowBuilder::new(app, "docs", WebviewUrl::App("index.html".into()))
+    let win = WebviewWindowBuilder::new(app, "docs", WebviewUrl::App("index.html".into()))
         .title("Anobe Docs")
         .inner_size(1140.0, 800.0)
         .min_inner_size(900.0, 600.0)
         .center()
+        .visible(true)
         .build()
         .map_err(|e| e.to_string())?;
+    log::info!("Anobe Docs window built: label=docs");
     apply_icon(app, "docs", None);
+    // Nudge WebView2 to paint even if the main window just changed visibility.
+    let _ = win.show();
+    let _ = win.set_focus();
     Ok("opened".into())
 }
 
@@ -683,6 +793,8 @@ struct PendingLink {
 }
 
 struct PendingLinkState(Mutex<Option<PendingLink>>);
+
+struct LastDownload(Mutex<Option<String>>);
 
 fn handle_deep_link_url(app: &AppHandle, raw: &str) {
     log::info!("deep link received: {raw}");
@@ -845,6 +957,264 @@ fn file_openers(ext: String, owner_exes: Vec<String>) -> FileOpeners {
     }
 }
 
+
+#[derive(serde::Deserialize)]
+struct DetectRequest {
+    id: String,
+    executables: Vec<String>,
+    alt: String,
+}
+
+#[derive(Serialize)]
+struct DetectResult {
+    id: String,
+    installed: bool,
+    path: Option<String>,
+}
+
+#[cfg(target_os = "windows")]
+fn check_windows_registry(alt: &str) -> bool {
+    // Common uninstall registry locations
+    let hives = [
+        (winreg::RegKey::predef(winreg::enums::HKEY_LOCAL_MACHINE), r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"),
+        (winreg::RegKey::predef(winreg::enums::HKEY_LOCAL_MACHINE), r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"),
+        (winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER), r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"),
+    ];
+    let alt_lower = alt.to_lowercase();
+    let alt_words: Vec<&str> = alt_lower.split_whitespace().collect();
+    for (hive, path) in hives {
+        if let Ok(key) = hive.open_subkey(path) {
+            for name in key.enum_keys().flatten() {
+                if let Ok(sub) = key.open_subkey(&name) {
+                    if let Ok(display) = sub.get_value::<String, _>("DisplayName") {
+                        let dl = display.to_lowercase();
+                        // Require all words of alt to be in DisplayName for Affinity, otherwise fuzzy
+                        let all_words = alt_words.iter().all(|w| dl.contains(w));
+                        if all_words || dl.contains(&alt_lower) || alt_lower.contains(&dl) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    false
+}
+
+#[cfg(not(target_os = "windows"))]
+fn check_windows_registry(_alt: &str) -> bool { false }
+
+#[cfg(target_os = "windows")]
+fn check_common_paths(exe: &str) -> Option<String> {
+    let exe_lower = exe.to_lowercase();
+    // Affinity MSIX execution aliases
+    if exe_lower.contains("affinity") || exe_lower == "photo.exe" || exe_lower == "designer.exe" || exe_lower == "publisher.exe" {
+        let local_app = std::env::var("LOCALAPPDATA").unwrap_or_default();
+        let candidates = [
+            format!(r"{}\Microsoft\WindowsApps\AffinityPhoto2.exe", local_app),
+            format!(r"{}\Microsoft\WindowsApps\AffinityDesigner2.exe", local_app),
+            format!(r"{}\Microsoft\WindowsApps\AffinityPublisher2.exe", local_app),
+            r"C:\Program Files\Affinity\Photo 2\Photo.exe".to_string(),
+            r"C:\Program Files\Affinity\Designer 2\Designer.exe".to_string(),
+            r"C:\Program Files\Affinity\Publisher 2\Publisher.exe".to_string(),
+        ];
+        for c in candidates {
+            if std::path::Path::new(&c).is_file() {
+                return Some(c);
+            }
+        }
+        // Check WindowsApps glob for Serif package
+        if let Ok(entries) = std::fs::read_dir(r"C:\Program Files\WindowsApps") {
+            for e in entries.flatten() {
+                let name = e.file_name().to_string_lossy().to_lowercase();
+                if name.contains("serifeurope") && name.contains("affinity") {
+                    // Look inside for executables
+                    if let Ok(inner) = std::fs::read_dir(e.path()) {
+                        for f in inner.flatten() {
+                            let fp = f.path().to_string_lossy().to_lowercase();
+                            if fp.ends_with("photo.exe") || fp.ends_with("designer.exe") || fp.ends_with("publisher.exe") {
+                                return Some(f.path().to_string_lossy().to_string());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // General Program Files checks
+    let prog_files = [
+        std::env::var("ProgramFiles").unwrap_or(r"C:\Program Files".to_string()),
+        std::env::var("ProgramFiles(x86)").unwrap_or(r"C:\Program Files (x86)".to_string()),
+        std::env::var("LOCALAPPDATA").unwrap_or_default() + r"\Programs",
+    ];
+    let exe_name = exe.to_string();
+    for root in prog_files {
+        // Check direct exe in root
+        let p1 = format!(r"{}\{}", root, exe_name);
+        if std::path::Path::new(&p1).is_file() {
+            return Some(p1);
+        }
+        // Check common subfolders per exe
+        let subfolders: &[&str] = match exe_lower.as_str() {
+            "blender.exe" | "blender" => &["Blender Foundation\\Blender 4.2", "Blender Foundation\\Blender 4.1", "Blender Foundation\\Blender 4.0", "Blender Foundation\\Blender"],
+            "krita.exe" | "krita" => &[r"Krita (x64)\bin", r"Krita\bin"],
+            "darktable.exe" | "darktable" => &[r"darktable\bin"],
+            "resolve.exe" | "resolve" => &[r"Blackmagic Design\DaVinci Resolve", r"Blackmagic Design\DaVinci Resolve\Resolve.exe".into()],
+            "kdenlive.exe" | "kdenlive" => &[r"kdenlive\bin"],
+            "cavalry.exe" => &[r"Cavalry"],
+            "opentooz.exe" | "opentooz" | "opentool" => &[r"OpenToonz"],
+            "audacity.exe" | "audacity" => &[r"Audacity"],
+            "ardour" => &[r"Ardour\bin"],
+            "digikam.exe" | "digikam" => &[r"digiKam\bin"],
+            "handbrake.exe" | "handbrake" | "ghb" => &[r"HandBrake"],
+            "figma.exe" | "figma" => &[r"Figma", r"Figma\app-*"],
+            "soffice.exe" | "soffice" | "swriter.exe" => &[r"LibreOffice\program", r"LibreOffice"],
+            "hugo.exe" | "hugo" => &[r"Hugo\bin", r"hugo"],
+            _ => &[],
+        };
+        for sub in subfolders {
+            let p = format!(r"{}\{}\{}", root, sub, exe_name);
+            if std::path::Path::new(&p).is_file() {
+                return Some(p);
+            }
+            // Also try without exe duplicate for cases where sub already includes exe
+            let p2 = format!(r"{}\{}", root, sub);
+            if p2.to_lowercase().ends_with(".exe") && std::path::Path::new(&p2).is_file() {
+                return Some(p2);
+            }
+        }
+    }
+    None
+}
+
+#[cfg(not(target_os = "windows"))]
+fn check_common_paths(_exe: &str) -> Option<String> { None }
+
+#[cfg(target_os = "linux")]
+fn check_flatpak_snap(alt: &str) -> bool {
+    let alt_lower = alt.to_lowercase();
+    let flatpak_map: &[(&str, &str)] = &[
+        ("blender", "org.blender.Blender"),
+        ("krita", "org.kde.krita"),
+        ("kdenlive", "org.kde.kdenlive"),
+        ("darktable", "org.darktable.Darktable"),
+        ("audacity", "org.audacityteam.Audacity"),
+        ("digikam", "org.kde.digikam"),
+        ("handbrake", "fr.handbrake.ghb"),
+        ("inkscape", "org.inkscape.Inkscape"),
+        ("blender", "org.blender.Blender"),
+    ];
+    for (key, id) in flatpak_map {
+        if alt_lower.contains(key) {
+            if let Ok(out) = std::process::Command::new("flatpak").args(["info", id]).output() {
+                if out.status.success() { return true; }
+            }
+        }
+    }
+    // Snap check
+    for key in ["blender", "krita", "darktable", "audacity"] {
+        if alt_lower.contains(key) {
+            if let Ok(out) = std::process::Command::new("snap").args(["list", key]).output() {
+                if out.status.success() && String::from_utf8_lossy(&out.stdout).contains(key) {
+                    return true;
+                }
+            }
+        }
+    }
+    false
+}
+
+#[cfg(not(target_os = "linux"))]
+fn check_flatpak_snap(_alt: &str) -> bool { false }
+
+#[cfg(target_os = "macos")]
+fn check_macos_app(alt: &str) -> bool {
+    let alt_lower = alt.to_lowercase();
+    let candidates = [
+        format!("/Applications/{}.app", alt),
+        format!("/Applications/{} 2.app", alt),
+        format!("/Applications/Affinity {}.app", alt.split_whitespace().last().unwrap_or("")),
+    ];
+    for c in candidates {
+        if std::path::Path::new(&c).exists() { return true; }
+    }
+    // Special cases
+    let map: &[(&str, &str)] = &[
+        ("affinity photo", "/Applications/Affinity Photo 2.app"),
+        ("affinity designer", "/Applications/Affinity Designer 2.app"),
+        ("affinity publisher", "/Applications/Affinity Publisher 2.app"),
+        ("blender", "/Applications/Blender.app"),
+        ("krita", "/Applications/krita.app"),
+        ("darktable", "/Applications/darktable.app"),
+        ("davinci resolve", "/Applications/DaVinci Resolve/DaVinci Resolve.app"),
+    ];
+    for (k, p) in map {
+        if alt_lower.contains(k) && std::path::Path::new(p).exists() { return true; }
+    }
+    false
+}
+
+#[cfg(not(target_os = "macos"))]
+fn check_macos_app(_alt: &str) -> bool { false }
+
+fn is_installed(alt: &str, executables: &[String]) -> Option<String> {
+    if executables.is_empty() {
+        return None; // web/service never "installed" as desktop
+    }
+    for exe in executables {
+        if let Some(path) = probe_exe(exe) {
+            let exe_lower = exe.to_lowercase();
+            // Generic Affinity exes (Photo.exe etc.) are only valid if path contains affinity
+            if matches!(exe_lower.as_str(), "photo.exe" | "designer.exe" | "publisher.exe") {
+                if path.to_lowercase().contains("affinity") {
+                    return Some(path);
+                }
+                // otherwise ignore this generic hit and try next exe / registry
+            } else {
+                return Some(path);
+            }
+        }
+        if let Some(path) = check_common_paths(exe) {
+            return Some(path);
+        }
+    }
+    // Windows AppX package check for Affinity (more reliable than where)
+    if alt.to_lowercase().contains("affinity") {
+        if check_affinity_appx(alt) { return Some("appx".to_string()); }
+    }
+    if check_windows_registry(alt) { return Some("registry".to_string()); }
+    if check_flatpak_snap(alt) { return Some("flatpak/snap".to_string()); }
+    if check_macos_app(alt) { return Some("app-bundle".to_string()); }
+    None
+}
+
+#[cfg(target_os = "windows")]
+fn check_affinity_appx(alt: &str) -> bool {
+    let alt_lower = alt.to_lowercase();
+    let pkg_keyword = if alt_lower.contains("photo") { "Photo" } else if alt_lower.contains("designer") { "Designer" } else if alt_lower.contains("publisher") { "Publisher" } else { return false };
+    // Use PowerShell Get-AppxPackage to detect MSIX install (Canva/Affinity 2+)
+    if let Ok(out) = std::process::Command::new("powershell")
+        .args(["-NoProfile","-NonInteractive","-Command", &format!("Get-AppxPackage *Affinity*{}* | Select-Object -ExpandProperty PackageFullName", pkg_keyword)])
+        .output() {
+        if out.status.success() {
+            let s = String::from_utf8_lossy(&out.stdout);
+            if !s.trim().is_empty() { return true; }
+        }
+    }
+    false
+}
+
+#[cfg(not(target_os = "windows"))]
+fn check_affinity_appx(_alt: &str) -> bool { false }
+
+#[tauri::command]
+fn detect_installed(requests: Vec<DetectRequest>) -> Vec<DetectResult> {
+    requests.into_iter().map(|r| {
+        let path = is_installed(&r.alt, &r.executables);
+        DetectResult { id: r.id, installed: path.is_some(), path }
+    }).collect()
+}
+
 #[tauri::command]
 fn open_with_exe(path: String, exe: String) -> Result<String, String> {
     log::info!("open-with {exe} <- {path}");
@@ -874,6 +1244,41 @@ fn open_with_dialog(path: String) -> Result<String, String> {
     }
 }
 
+#[tauri::command]
+fn get_last_download(state: State<LastDownload>) -> Option<String> {
+    state.0.lock().unwrap().clone()
+}
+
+#[tauri::command]
+fn scan_with_virustotal(app: AppHandle, path: Option<String>, state: State<LastDownload>) -> Result<String, String> {
+    use tauri_plugin_opener::OpenerExt;
+    let target = path.or_else(|| state.0.lock().unwrap().clone());
+    if let Some(p) = target.as_ref() {
+        log::info!("virustotal scan for {:?}", p);
+    }
+    // Open VirusTotal upload page — auto-upload via API would need a key,
+    // so we open the page and the user can drag the file.
+    app.opener().open_url("https://www.virustotal.com/gui/home/upload", None::<&str>).map_err(|e| e.to_string())?;
+    Ok("opened".into())
+}
+
+#[tauri::command]
+fn get_downloads_dir() -> Result<String, String> {
+    #[cfg(target_os = "windows")]
+    {
+        let out = Command::new("powershell")
+            .args(["-NoProfile","-NonInteractive","-Command","[Environment]::GetFolderPath('UserProfile') + '\\Downloads'"])
+            .output().map_err(|e| e.to_string())?;
+        let p = String::from_utf8_lossy(&out.stdout).trim().to_string();
+        if !p.is_empty() { return Ok(p); }
+    }
+    if let Some(home) = dirs_home() {
+        let p = home.join("Downloads");
+        if p.is_dir() { return Ok(p.to_string_lossy().to_string()); }
+    }
+    Err("no-downloads".into())
+}
+
 fn main() {
     // Single instance must be registered first (desktop only).
     let mut builder = tauri::Builder::default();
@@ -894,6 +1299,7 @@ fn main() {
     builder
         .manage(PendingDocState(Mutex::new(None)))
         .manage(PendingLinkState(Mutex::new(None)))
+        .manage(LastDownload(Mutex::new(None)))
         .plugin(
             tauri_plugin_log::Builder::new()
                 .level(log::LevelFilter::Debug)
@@ -901,16 +1307,24 @@ fn main() {
         )
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_fs::init())
         .setup(|app| {
-            // Window geometry persistence (desktop).
+            // Window geometry persistence (desktop): main window ONLY.
+            // Child windows (installer/webapp/docs) and the splashscreen must
+            // never restore stale geometry — a poisoned position once parked
+            // a webapp window off-screen (x=-1027), looking "not working".
             #[cfg(desktop)]
             {
-                let _ = app
-                    .handle()
-                    .plugin(tauri_plugin_window_state::Builder::default().build());
+                let _ = app.handle().plugin(
+                    tauri_plugin_window_state::Builder::default()
+                        .with_filter(|label| label == "main")
+                        .build(),
+                );
             }
 
             if let Some(w) = app.get_webview_window("main") {
@@ -1024,11 +1438,14 @@ fn main() {
                     log::info!("SMOKE: installer window");
                     log::info!(
                         "SMOKE installer -> {:?}",
-                        open_child_window_inner(
+                        open_child_window_inner_ext(
                             &handle,
                             "installer",
                             "blender",
                             "Blender",
+                            Some("Blender"),
+                            None,
+                            None,
                             "https://www.blender.org/download/"
                         )
                     );
@@ -1044,11 +1461,14 @@ fn main() {
                     log::info!("SMOKE: webapp window");
                     log::info!(
                         "SMOKE webapp -> {:?}",
-                        open_child_window_inner(
+                        open_child_window_inner_ext(
                             &handle,
                             "webapp",
                             "xd",
                             "Figma",
+                            Some("XD"),
+                            None,
+                            None,
                             "https://www.figma.com/"
                         )
                     );
@@ -1082,6 +1502,10 @@ fn main() {
             file_openers,
             open_with_exe,
             open_with_dialog,
+            get_downloads_dir,
+            get_last_download,
+            detect_installed,
+            scan_with_virustotal,
             open_child_window,
             open_docs_window,
             take_pending_doc,

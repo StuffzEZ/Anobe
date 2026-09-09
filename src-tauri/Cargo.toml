@@ -1,6 +1,6 @@
 [package]
 name = "anobe"
-version = "0.4.0"
+version = "0.6.1"
 description = "Anobe — app hub to install, manage and bridge Adobe alternatives"
 authors = ["Anobe Contributors"]
 edition = "2021"
@@ -13,6 +13,7 @@ tauri = { version = "2", features = ["tray-icon"] }
 tauri-plugin-opener = "2"
 tauri-plugin-shell = "2"
 tauri-plugin-fs = "2"
+tauri-plugin-dialog = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 image = { version = "0.25", default-features = false, features = ["png"] }
@@ -21,6 +22,8 @@ tauri-plugin-log = "2.9.1"
 tauri-plugin-os = "2.3.2"
 tauri-plugin-deep-link = "2.4.10"
 log = "0.4"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
 
 [features]
 default = ["custom-protocol"]
@@ -29,3 +32,6 @@ custom-protocol = ["tauri/custom-protocol"]
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
 tauri-plugin-single-instance = "2.4.4"
 tauri-plugin-window-state = "2"
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.52"

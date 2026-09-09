@@ -11,12 +11,13 @@ import {
   type DocsTab,
 } from "../lib/tauri";
 
-function DocIcon({ app, size = 34 }: { app: AltApp; size?: number }) {
+function DocIcon({ app, size = 34, adobify = false }: { app: AltApp; size?: number; adobify?: boolean }) {
   const [err, setErr] = useState(false);
+  const src = adobify && (app as any).adobeIcon ? (app as any).adobeIcon : app.icon;
   if (!err) {
     return (
       <img
-        src={app.icon}
+        src={src}
         width={size}
         height={size}
         alt=""
@@ -124,7 +125,7 @@ export default function DocsApp() {
               className={`docs-item${a.id === selected.id ? " active" : ""}`}
               onClick={() => setSelectedId(a.id)}
             >
-              <DocIcon app={a} size={30} />
+              <DocIcon app={a} size={30} adobify={adobify} />
               <div className="meta">
                 <div className="t">{adobify ? a.adobe : a.alt}</div>
                 <div className="s">{adobify ? a.alt : a.adobe}</div>
@@ -136,7 +137,7 @@ export default function DocsApp() {
 
         <main className="docs-page">
           <div className="docs-page-head">
-            <DocIcon app={selected} size={52} />
+            <DocIcon app={selected} size={52} adobify={adobify} />
             <div style={{ flex: 1 }}>
               <h1>
                 {adobify ? selected.adobe : selected.alt}
@@ -167,14 +168,28 @@ export default function DocsApp() {
           </div>
 
           {tab === "guide" ? (
-            <ol className="docs-steps">
-              {selected.switchSteps.map((s, i) => (
-                <li key={i}>
-                  <span className="step-n">{i + 1}</span>
-                  <span>{s}</span>
-                </li>
-              ))}
-            </ol>
+            <>
+              <h3 style={{margin:"0 0 8px", fontSize:14}}>You need to know — offline essentials</h3>
+              <ol className="docs-steps">
+                {selected.switchSteps.map((s, i) => (
+                  <li key={i}>
+                    <span className="step-n">{i + 1}</span>
+                    <span>{s}</span>
+                  </li>
+                ))}
+              </ol>
+              {(selected as any).extended?.length > 0 && (
+                <>
+                  <h4 style={{margin:"16px 0 8px", fontSize:13, color:"var(--text-2)"}}>Deeper essentials (summarised from official docs)</h4>
+                  <ol className="docs-steps">
+                    {(selected as any).extended.map((s: string, i: number) => (
+                      <li key={`e-${i}`}><span className="step-n" style={{background:"#0f6cbd"}}>{i+1}</span><span>{s}</span></li>
+                    ))}
+                  </ol>
+                </>
+              )}
+              <p style={{fontSize:12, color:"var(--text-3)", marginTop:12}}>Full detail lives in Official docs tab — this guide is the 20% you need 80% of the time.</p>
+            </>
           ) : (
             <div className="docs-official">
               <p>

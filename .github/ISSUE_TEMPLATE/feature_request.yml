@@ -1,0 +1,16 @@
+name: Feature Request
+description: Suggest an idea for Anobe
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Idea
+      description: What should Anobe do differently?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [Hub, Installer, Docs, Images, Updater, Other]

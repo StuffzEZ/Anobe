@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: View License
+    url: https://github.com/StuffzEZ/Anobe/blob/main/LICENSE
+    about: Read the MIT license for Anobe
+  - name: View README
+    url: https://github.com/StuffzEZ/Anobe#readme
+    about: Full documentation, install & switch guides
+  - name: Create an Issue
+    url: https://github.com/StuffzEZ/Anobe/issues/new/choose
+    about: Report a bug or request a feature

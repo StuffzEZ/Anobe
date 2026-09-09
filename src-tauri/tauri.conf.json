@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Anobe",
-  "version": "0.4.0",
-  "identifier": "com.anobe.hub",
+  "version": "0.6.1",
+  "identifier": "com.stufy.anobehub",
   "build": {
     "devUrl": "http://localhost:1420",
     "frontendDist": "../dist",
@@ -39,9 +39,14 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"]
   },
   "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEYzQzU2NkJFOTM3NTE0MUUKUldRZUZIV1R2bWJGODNEYVY5U3Q3dHpiSEhFQ0hpRzVCMTZXU1VlZ2ptRjg2cHl3MG9YcEZIeUYK",
+      "endpoints": ["https://github.com/StuffzEZ/Anobe/releases/latest/download/latest.json"]
+    },
     "opener": {},
     "shell": {},
     "fs": {},

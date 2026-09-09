@@ -33,12 +33,20 @@ async function attachLogs() {
 /** Main window: reveal it and dismiss the splashscreen once React is up. */
 async function splashDance() {
   if (!isTauri()) return;
+  // Main is created visible:false. Show it first so the docs window never
+  // has to compete with a hidden main for the compositor.
   try {
     const { getCurrentWindow } = await import("@tauri-apps/api/window");
     await getCurrentWindow().show();
-  } catch {
-    /* watchdog in Rust covers failures */
+    await getCurrentWindow().setFocus();
+  } catch (e) {
+    try {
+      const { warn } = await import("@tauri-apps/plugin-log");
+      await warn(`splashDance show failed: ${String(e)}`);
+    } catch { /* ignore */ }
   }
+  // Give WebView2 a tick to paint main before we close splash.
+  await new Promise<void>((r) => setTimeout(r, 120));
   try {
     const { Window } = await import("@tauri-apps/api/window");
     const splash = await Window.getByLabel("splashscreen");

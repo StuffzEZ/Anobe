@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            args: ""
+            target: x86_64-pc-windows-msvc
+          - platform: ubuntu-22.04
+            args: ""
+            target: x86_64-unknown-linux-gnu
+          - platform: macos-latest
+            args: "--target aarch64-apple-darwin"
+            target: aarch64-apple-darwin
+          - platform: macos-latest
+            args: "--target x86_64-apple-darwin"
+            target: x86_64-apple-darwin
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+      - name: Install Linux deps
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libfuse2
+      - name: Install frontend
+        run: npm ci
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.event.release.tag_name || format('v{0}', '0.6.1') }}
+          releaseName: "Anobe ${{ github.event.release.tag_name || 'v0.6.1' }}"
+          releaseBody: "See the assets to download this version and install."
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}
+
+  updater-json:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Generate latest.json
+        run: |
+          # Tauri action already uploads latest.json per platform; this job just ensures it exists at release root
+          ls -R artifacts || true

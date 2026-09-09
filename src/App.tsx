@@ -30,6 +30,7 @@ import {
   appLinkedExtensions,
   appLogDir,
   createShortcut,
+  detectInstalled,
   digikamStatus,
   driveStatus,
   fileOpeners,
@@ -133,6 +134,24 @@ export function AppIcon({ app, size = 36 }: { app: AltApp; size?: number }) {
   );
 }
 
+/** Adobe logo image for Adobify, with letter-tile fallback. */
+function AdobeIcon({ app, size = 36 }: { app: AltApp; size?: number }) {
+  const [err, setErr] = useState(false);
+  if (!err && app.adobeIcon) {
+    return (
+      <img
+        src={app.adobeIcon}
+        width={size}
+        height={size}
+        alt={app.adobe}
+        onError={() => setErr(true)}
+        style={{ borderRadius: size * 0.22, display: "block", flexShrink: 0 }}
+      />
+    );
+  }
+  return <AdobeTile app={app} size={size} />;
+}
+
 /** Adobe-style letter tile, used only in Adobify mode. */
 function AdobeTile({ app, size = 36 }: { app: AltApp; size?: number }) {
   return (
@@ -159,7 +178,7 @@ function AdobeTile({ app, size = 36 }: { app: AltApp; size?: number }) {
 }
 
 function BrandIcon({ app, size, adobify }: { app: AltApp; size?: number; adobify: boolean }) {
-  return adobify ? <AdobeTile app={app} size={size} /> : <AppIcon app={app} size={size} />;
+  return adobify ? <AdobeIcon app={app} size={size} /> : <AppIcon app={app} size={size} />;
 }
 
 function formatWhen(secs: number): string {
@@ -498,6 +517,31 @@ export default function App() {
     };
   }, []);
 
+  // Robust detection: probe every desktop app via Rust (where/which + registry + common paths + flatpak)
+  useEffect(() => {
+    if (!isTauri()) return;
+    const reqs = APPS.filter((a) => a.executables.length > 0).map((a) => ({
+      id: a.id,
+      executables: a.executables,
+      alt: a.alt,
+    }));
+    detectInstalled(reqs)
+      .then((results) => {
+        const detected = results.filter((r) => r.installed).map((r) => r.id);
+        void logDebug(`detect installed: ${detected.join(",") || "(none)"} from ${results.length} probes`);
+        setInstalled((prev) => {
+          // Trust system probe for desktop apps; keep web/service flags that can't be probed
+          const keepWeb = prev.filter((id) => {
+            const app = APPS.find((x) => x.id === id);
+            return app ? app.executables.length === 0 : false;
+          });
+          // Always overwrite desktop state — clears stale "Reinstall" false positives
+          return [...new Set([...detected, ...keepWeb])];
+        });
+      })
+      .catch(() => undefined);
+  }, []);
+
   const refreshDigikam = async () => {
     setCheckingDigi(true);
     try {
@@ -590,6 +634,22 @@ export default function App() {
   }
 
   async function handleInstall(app: AltApp) {
+    if (app.os.length > 0 && isTauri()) {
+      try {
+        const { platform } = await import("@tauri-apps/plugin-os");
+        const cur = await platform();
+        if (!app.os.includes(cur as any)) {
+          const { confirm } = await import("@tauri-apps/plugin-dialog");
+          const ok = await confirm(
+            `${app.alt} doesn’t officially support ${cur} (supports: ${app.os.join(", ") || "web"}). The download page may not have a build for you. Open anyway?`,
+            { title: "Compatibility warning", kind: "warning" }
+          );
+          if (!ok) return;
+        }
+      } catch {
+        // if os check fails, proceed anyway
+      }
+    }
     if (!isTauri()) {
       setToast(`Browser preview: get ${app.alt} at ${app.installUrl}`);
       await openExternal(app.installUrl);
@@ -1163,10 +1223,42 @@ export default function App() {
               </div>
 
               <div className="settings-card">
+                <h3>Updates</h3>
+                <p>Anobe checks GitHub Releases via <code>latest.json</code> and is signed with your minisign key. Click below to check.</p>
+                <div className="card-actions">
+                  <button className="btn primary" onClick={async ()=>{
+                    try{
+                      const { check } = await import("@tauri-apps/plugin-updater");
+                      const upd = await check();
+                      if(!upd){ setToast("You’re up to date."); return; }
+                      const { ask } = await import("@tauri-apps/plugin-dialog");
+                      const ok = await ask(`Anobe ${upd.version} is available.\n\n${upd.body ?? ""}\n\nInstall now?`, { title: "Update available", kind: "info" });
+                      if(ok){ await upd.downloadAndInstall(); const { relaunch } = await import("@tauri-apps/plugin-process"); await relaunch(); }
+                    }catch(e){ setToast(`Update check failed: ${String(e).slice(0,120)}`); }
+                  }}>Check for updates</button>
+                  <button className="btn" onClick={()=>openExternal("https://github.com/StuffzEZ/Anobe/releases")}>View releases</button>
+                </div>
+              </div>
+
+              <div className="settings-card">
                 <h3>About</h3>
-                <p>Anobe v0.4.0 · Tauri hub + Anobe Docs + Anobe App Installer · {APPS.length} Adobe apps covered. Say no to Adobe.</p>
+                <p>Anobe v0.6.1 Beta 1 · Anobe Docs + Anobe App Installer · {APPS.length} Adobe apps covered. Say no to Adobe.</p>
+                <p>This product was created with the help of generative AI. Anobe is not affiliated with, endorsed by, or sponsored by Adobe Inc. in any way. All third-party software, trademarks, logos, and documentation referenced in this app — including web apps and external documentation pages — remain the property of their respective owners. No credit is claimed for them by Anobe.</p>
+                <p>© Stuf_y 2026–Present · <a href="https://github.com/StuffzEZ/Anobe" target="_blank" rel="noreferrer">github.com/StuffzEZ/Anobe</a> · Licensed under GNU GPLv3 (see LICENSE)</p>
                 <div className="card-actions">
                   <button className="btn" onClick={() => { setInstalled([]); setToast("Installed flags cleared."); }}>Reset installed flags</button>
+                  <button className="btn" onClick={async ()=>{
+                    try{
+                      const reqs = APPS.filter((a)=>a.executables.length>0).map((a)=>({id:a.id, executables:a.executables, alt:a.alt}));
+                      const res = await detectInstalled(reqs);
+                      const detected = res.filter((r)=>r.installed).map((r)=>r.id);
+                      setInstalled((prev)=>{
+                        const keepWeb = prev.filter((id)=>{ const app=APPS.find((x)=>x.id===id); return app ? app.executables.length===0 : false; });
+                        return [...new Set([...detected, ...keepWeb])];
+                      });
+                      setToast(detected.length ? `Found ${detected.length} installed app${detected.length===1?'':'s'}` : "No desktop apps detected");
+                    }catch{ setToast("Rescan failed"); }
+                  }}>Rescan installed apps</button>
                   <button className="btn" onClick={() => openDocsWindow().catch(() => setToast("Couldn't open Anobe Docs."))}>Open Anobe Docs</button>
                 </div>
               </div>

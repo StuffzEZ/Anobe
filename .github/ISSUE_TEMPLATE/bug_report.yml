@@ -1,0 +1,29 @@
+name: Bug Report
+description: Report a bug in Anobe
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Clear description, steps to reproduce, expected vs actual
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: OS
+      options: [Windows, macOS, Linux]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Anobe version
+      placeholder: e.g. v0.6.1 Beta 1
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Paste %LOCALAPPDATA%/com.anobe.hub/logs/Anobe.log tail if relevant
+      render: shell

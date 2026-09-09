@@ -1,65 +1,127 @@
-# Anobe
-Say no to Adobe
+# Anobe — Say no to Adobe
 
-## Hub app (Tauri)
+> **The free, open hub to install, manage and master every Adobe replacement.** Search by Adobe name or replacement name, install without silent magic, keep your files, and learn the switch — all from one Tauri desktop app.
 
-Office-style app hub to install, open and manage every replacement, with docs + switch guides.
+![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg) ![Platform: Win | macOS | Linux](https://img.shields.io/badge/platform-Win%20%E2%80%A2%20macOS%20%E2%80%A2%20Linux-lightgrey) ![Anobe v0.6.1 Beta 1](https://img.shields.io/badge/version-v0.6.1%20Beta%201-orange)
+
+**Quick links:** [Releases](https://github.com/StuffzEZ/Anobe/releases) • [License](LICENSE) • [Create an issue](https://github.com/StuffzEZ/Anobe/issues/new/choose) • [View license](https://github.com/StuffzEZ/Anobe/blob/main/LICENSE) • Deep links: `anobe://open/blender`, `anobe://install/blender`, `anobe://docs/blender`, `anobe://apps`, `anobe://documents`
+
+---
+
+## Why Anobe?
+
+Adobe Creative Cloud locks you in. Anobe maps **every Adobe app → the best *truly free* replacement** (no big-catch `free*` like WordPress plugin paywalls) and gives you a native hub to **install, open, organize and learn** — with real icons, Adobify toggle, and offline guides.
+
+| Adobe App | Best Free Replacement | Why this pick |
+|---|---|---|
+| Photoshop / Elements | **Affinity Photo** (now free via Canva, affinity.studio) | PSD layers, non-destructive, no subscription |
+| Illustrator | **Affinity Designer** | True vector + pixel personas |
+| InDesign | **Affinity Publisher** | IDML import, Publisher-grade layout |
+| Lightroom | **darktable** | RAW, Lighttable/Darkroom, styles |
+| Premiere Pro | **DaVinci Resolve** (free tier) | Pro timeline + color, generous free |
+| Rush / Elements | **Kdenlive** | Social presets, lightweight |
+| After Effects / Animate | **Cavalry** | Procedural motion, free tier |
+| Character Animator | **OpenToonz** | Puppet rig, real production use |
+| Audition | **Audacity** + **Ardour** (split) | Waveform + multitrack/MIDI |
+| Fresco | **Krita** | Tablet-first painting |
+| Bridge | **digiKam** | Tags/ratings/XMP |
+| Media Encoder | **HandBrake** | Batch transcode |
+| Dimension / Stager / Modeler | **Blender** | Cycles/Eevee, sculpt |
+| XD | **Figma** (desktop) / **Penpot** (self-host) | Figma free tier small catch |
+| InCopy | **LibreOffice Writer** | Track Changes round-trip |
+| Substance Painter | **ArmorPaint** | PBR painting |
+| Substance Designer | **Blender Shader Editor** | Node materials |
+| Substance Sampler | **Materialize** | Photo → PBR |
+| Acrobat | **PDF24** | Merge/split/OCR |
+| Scan | **Microsoft Lens** | Phone → OCR PDF |
+| Fill & Sign | **DocHub** (web) | Browser sign |
+| Stock / Fonts | **Pexels** / **Google Fonts** | Truly free |
+| Frame.io | **Frame.io (free tier)** | Timestamp review |
+| Behance / Portfolio | **ArtStation** / **Hugo** | Free portfolio |
+| Experience Cloud (AEM) | **Strapi** (headless, MIT) | API-first, self-host, no paywall |
+| Connect | **Jitsi Meet** | No account |
+| ColdFusion | **Lucee** (CFML) | Drop-in CFML |
+| RoboHelp / Captivate | **Sphinx** / **H5P** | Docs / eLearning |
+
+*Icon handling:* normal mode shows **replacement’s real brand mark**; **Adobify** (top bar + Settings) swaps to the **actual Adobe CC logo** (`public/icons/adobe/*.svg`) with the replacement as subtitle.
+
+---
+
+## Install & Run
 
 ```powershell
 npm install
-npm run tauri dev      # run the desktop app
-npm run tauri build    # build an installer
-npm run dev            # frontend-only browser preview
+npm run tauri dev      # desktop (splash → hub)
+npm run tauri build    # → src-tauri/target/release/bundle (msi/nsis, deb/appimage, dmg)
+npm run dev            # browser preview (no Tauri)
 ```
 
-- Splash screen with loading bar, system tray (Show / Docs / Quit), remembered window sizes.
-- Slim sidebar with full app names, pinned popular apps (real brand icons), **All apps** button.
-- Top search matches Adobe and replacement names (`/` focuses it anywhere).
-- **Adobify** flips to Adobe names with Adobe-style tiles (audition shows Audacity + Ardour together).
-- **Documents** works out of the box: only files linked to your apps. Every file has an **Open with** menu (owner app, capable PC apps like Chrome/Edge/VLC, the Windows picker, install prompt, show in folder).
-- **Images** tab is digiKam's home (thumbnails, RAW, rescan); **Google Drive for Desktop** (`G:\My Drive`) joins the scan when installed.
-- **Anobe Docs** window: every switch guide + official docs, one page per app.
-- **Install** never installs silently (official download page in an **Anobe App Installer** popup). App details offer Desktop/Start Menu shortcuts.
-- Web apps open integrated in their own **Anobe Webapp** windows.
-- Deep links: `anobe://open/blender`, `anobe://install/blender`, `anobe://docs[/blender]`, `anobe://apps`, `anobe://documents`.
-- Settings has a **System check** (OS/CPU/RAM with min/recommended warnings per app) and the log folder path (debug logging to file).
+**First launch:** splash with marquee → hub. Top bar: centered search (`/` or `Ctrl+K` anywhere), Adobify switch. Sidebar: Home / Apps / Documents / Images / Docs (separate window) / Settings.
 
-## Apps
-| Adobe App | Standalone App? | What It Does | Best Free Replacement(s) |
-|---|---|---|---|
-| Photoshop | Yes | Raster/photo editing, retouching, compositing | Affinity (Pixel Studio) |
-| Illustrator | Yes | Vector graphics — logos, icons, scalable art | Affinity (Vector Studio) |
-| InDesign | Yes | Page layout for print/digital publishing | Affinity (Layout Studio) |
-| Lightroom / Lightroom Classic | Yes | RAW photo processing, organizing, batch editing | Darktable |
-| Premiere Pro | Yes | Timeline-based video editing | DaVinci Resolve |
-| Premiere Rush | Yes | Quick mobile-first video editing for social | Kdenlive |
-| After Effects | Yes | Motion graphics, VFX, compositing | Cavalry |
-| Animate | Yes | 2D vector/frame-by-frame animation | Cavalry |
-| Character Animator | Yes | Puppet rigging, real-time performance animation | OpenToonz |
-| Audition | Yes | Waveform editing and multitrack audio mixing/mastering | Audacity (editing/cleanup) + Ardour (multitrack/MIDI/mixing) |
-| Fresco | Yes | Digital painting (tablet-first) | Krita |
-| Bridge | Yes | Browsing, tagging, managing media assets | digiKam |
-| Media Encoder | Yes | Batch export/transcoding | HandBrake |
-| Dimension | Yes | 3D product mockups/rendering | Blender |
-| XD | Yes | UI/UX wireframing, interactive prototyping | Figma |
-| InCopy | Yes | Collaborative text editing that flows into InDesign | LibreOffice Writer |
-| Substance 3D Painter | Yes | Painting textures onto 3D models | ArmorPaint |
-| Substance 3D Designer | Yes | Procedural node-based material creation | Blender (shader editor) |
-| Substance 3D Sampler | Yes | Converting scans/photos into materials | Materialize |
-| Substance 3D Stager | Yes | Arranging/rendering 3D scenes | Blender |
-| Substance 3D Modeler | Yes | Sculpting 3D models (VR-friendly) | Blender (sculpt mode) |
-| Acrobat Pro/Standard/Reader | Yes | Creating, editing, viewing, merging PDFs | PDF24 |
-| Adobe Scan | Yes (mobile) | Turning phone photos into scanned PDFs w/ OCR | Microsoft Lens |
-| Fill & Sign | Yes (mobile/web) | Filling PDF forms, digital signatures | DocHub |
-| Adobe Stock | No — licensing service | Stock photo/video/audio library | Pexels |
-| Adobe Fonts | No — font-licensing service | Font library integrated into other apps | Google Fonts |
-| Frame.io | Yes (web platform) | Sharing video cuts for timestamped review | Frame.io (free tier) |
-| Behance | No — social/portfolio website | Showcasing creative work publicly | ArtStation |
-| Portfolio | No — hosted site builder | Simple personal portfolio site | Self-hosted static site |
-| Photoshop Elements | Yes | Consumer-simplified Photoshop | Affinity (Pixel Studio) |
-| Premiere Elements | Yes | Consumer-simplified Premiere | Kdenlive |
-| Experience Cloud/Manager | No — enterprise cloud platform | CMS/marketing-campaign management | WordPress |
-| Connect | Yes (web/desktop client) | Webinars, virtual classrooms | Jitsi Meet |
-| ColdFusion | Yes (server software) | Server-side web app platform | Node.js |
-| RoboHelp / FrameMaker | Yes | Authoring technical docs/help manuals | Sphinx |
-| Captivate | Yes | Building interactive eLearning courses | H5P |
+---
+
+## Features — What’s Inside
+
+**Hub (Office-like):**
+- Slim icon rail → **Most popular** (real icons + full names) + **All apps** button
+- `Create New` hero (Photo/Vector/Video/Paint/3D/Writer) + Recent/Pinned with pin, Open-with menu, Show in folder, Copy path
+- Deep links (no Adobify): `anobe://open/<id>`, `anobe://install/<id>`, `anobe://docs[/<id>]`, `anobe://apps`, `anobe://documents` + `anobe://docs/blender` — single-instance forwards second launches to the first window.
+
+**App Installer (separate window):**
+- `Anobe App Installer — {App}` with **Intel/AMD vs ARM + OS** banner (`public/installer.html:9` seeded from `std::env::consts::OS/ARCH` + `plugin-os` version fix for Win11 10.0.22000+ → 11)
+- Save-as defaults to `Downloads/[Original]_Anobe.ext`
+- Webview `on_download` → native **Save as** dialog, then auto-flips to **Installed** screen (icon + Adobe name below + *Open installer* + *Scan with VirusTotal* + *Information*). VirusTotal opens `virustotal.com/gui/home/upload` with last download path remembered (`LastDownload` state).
+
+**Documents vs Images:**
+- **Documents** = only app-linked project files (`handles` minus generic jpg/png/mp4…) from `Documents/Pictures/Videos/Desktop` + `G:\My Drive` when Drive for Desktop is mounted (`drive_status`). No mocks in Tauri — empty state if none.
+- **Images** = digiKam’s home (JPEG/RAW/KRA/PSD/AFPHOTO/HEIC…) with 128px thumbnails via `asset://` + fallback, filter, rescan, “Open in digiKam” when installed.
+
+**Anobe Docs (separate window):**
+- **Guide tab** = *what you need to run the app* — install, import PSD/AI/IDML, round-trip, export — per-app offline, concise.
+- **Official docs tab** = *everything else* — opens `https://…` in its own `Anobe Docs - {App}` webview (never hidden behind the hub).
+
+**System Check (Settings):**
+- `os-info` + `navigator.deviceMemory/hardwareConcurrency` → OS label (Win11 fix), cores, RAM + per-app **min/recommended** warnings (`Photo/Video/3D: 8/16GB, 4 cores` etc., Premiere/After Effects/Blender heavy overrides). Drawer also warns.
+
+**Updater:**
+- `tauri-plugin-updater` with `bundle.createUpdaterArtifacts` + `plugins.updater.pubkey` (`anobe.key.pub` minisign key) + `endpoints: ["https://github.com/StuffzEZ/Anobe/releases/latest/download/latest.json"]`. Settings → Check for updates. CI signs with `TAURI_SIGNING_PRIVATE_KEY` secret.
+
+---
+
+## Cross-Platform
+
+- **Windows / macOS / Linux** — Tauri + `cfg!(target_os)` shims (`where` vs `which`, `xdg-open` vs `open`, `ProgramFiles` probing, `*.app` etc.). Tested `cargo check` on `stable-x86_64-pc-windows-msvc`; Linux/mac need `libwebkit2gtk`/`appindicator` at build.
+- **Per-app OS badge + install guard:** each `AltApp.os: OsKey[]` (empty = web). `handleInstall` in `src/App.tsx:610` checks `platform()` and shows `dialog.confirm` if you’re on an unsupported OS before opening the installer.
+
+---
+
+## GitHub & Releases
+
+- **Releases:** `git tag v0.6.1-beta.1 && git push origin v0.6.1-beta.1` or **Publish a release** in GitHub UI → `.github/workflows/release.yml:1` builds 4 targets (Win x64, Linux x64, macOS aarch64 + x64) via `tauri-action`, signs with `TAURI_SIGNING_PRIVATE_KEY`, and attaches `msi`/`nsis`, `deb`/`appimage`, `dmg` + `latest.json` to the release.
+- **Updater key:** `C:/Temp/opencode/anobe.key` (private, keep secret) / `anobe.key.pub` (public, in `tauri.conf.json:45`). Add the private key as repo secret `TAURI_SIGNING_PRIVATE_KEY` (and password as `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` if set to `anobe`).
+- **Issues:** [Choose](https://github.com/StuffzEZ/Anobe/issues/new/choose) → Bug report / Feature request; `CONFIG: view license / view README`.
+- **License:** MIT — see [LICENSE](LICENSE).
+
+---
+
+## Docs Philosophy
+
+- **Anobe Docs → Guide** = minimal to be productive (install + import + 3-step switch).
+- **Web docs button** = full reference (community + official). Anobe *summarises* rather than mirrors — each guide links to `docsUrl` with “Open in Anobe” vs “Open in browser.”
+
+---
+
+## Dev Notes
+
+- Splash: `src-tauri/tauri.conf.json:14` `main: visible:false` + `splashscreen: splash.html` + `src/main.tsx:34` `splashDance()` + 20s Rust watchdog.
+- Tray: `tray-icon` feature + `TrayIconBuilder` (Show/Docs/Quit, click-to-show).
+- Deep links: `tauri-plugin-deep-link` (`anobe` scheme) + `single-instance` (first plugin) + `register_all()` for dev on Win/Linux.
+- File scopes: `capabilities/default.json:13` explicitly allows `$DOCUMENT/**`, `$DOWNLOAD/**`, `$PICTURE/**`, `$DESKTOP/**`, `$HOME/**` (`fs:default` alone grants nothing — see https://v2.tauri.app/plugin/file-system/#scopes).
+- Window-state only for `main` (`with_filter(|l| l=="main")`) — installer/webapp/docs never restore stale `x=-1027` positions.
+
+---
+
+## Attribution
+
+Affinity is now free via Canva (affinity.studio) — used as replacement for Photoshop/Illustrator/InDesign. All Adobe product names/logos are property of Adobe Inc., shown only for identification in Adobify mode. Anobe is not affiliated with Adobe. Built with Tauri 2 + Vite + React.
+
