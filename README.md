@@ -1,8 +1,11 @@
 # Anobe — Say no to Adobe
 
+> [!WARNING]
+> This app is NOWHERE near finished- there are loads of bugs and most of the code still needs reviewing- Its recommended you don't install it in its current state. If you do, please report ANY and ALL bugs you find and submit feature requests as you want. In addition, this README is also quite unfinished so it is recommended you only read upto the Install Section.
+
 > **The free, open hub to install, manage and master every Adobe replacement.** Search by Adobe name or replacement name, install without silent magic, keep your files, and learn the switch — all from one Tauri desktop app.
 
-![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg) ![Platform: Win | macOS | Linux](https://img.shields.io/badge/platform-Win%20%E2%80%A2%20macOS%20%E2%80%A2%20Linux-lightgrey) ![Anobe v0.6.1 Beta 1](https://img.shields.io/badge/version-v0.6.1%20Beta%201-orange)
+![License: GNU GPLv3](https://img.shields.io/badge/license-GNU_GPLv3-blue.svg) ![Platform: Win | macOS | Linux](https://img.shields.io/badge/platform-Win%20%E2%80%A2%20macOS%20%E2%80%A2%20Linux-lightgrey) ![Anobe v0.6.1 Beta 1](https://img.shields.io/badge/version-v0.6.1%20Beta%201-orange)
 
 **Quick links:** [Releases](https://github.com/StuffzEZ/Anobe/releases) • [License](LICENSE) • [Create an issue](https://github.com/StuffzEZ/Anobe/issues/new/choose) • [View license](https://github.com/StuffzEZ/Anobe/blob/main/LICENSE) • Deep links: `anobe://open/blender`, `anobe://install/blender`, `anobe://docs/blender`, `anobe://apps`, `anobe://documents`
 
@@ -47,14 +50,10 @@ Adobe Creative Cloud locks you in. Anobe maps **every Adobe app → the best *tr
 
 ---
 
-## Install & Run
+## Installing
 
-```powershell
-npm install
-npm run tauri dev      # desktop (splash → hub)
-npm run tauri build    # → src-tauri/target/release/bundle (msi/nsis, deb/appimage, dmg)
-npm run dev            # browser preview (no Tauri)
-```
+1) Download the latest release from the GitHub release pages
+2) Install and launch Anobe
 
 **First launch:** splash with marquee → hub. Top bar: centered search (`/` or `Ctrl+K` anywhere), Adobify switch. Sidebar: Home / Apps / Documents / Images / Docs (separate window) / Settings.
 
