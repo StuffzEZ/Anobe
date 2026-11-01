@@ -1062,7 +1062,7 @@ fn check_common_paths(exe: &str) -> Option<String> {
             "resolve.exe" | "resolve" => &[r"Blackmagic Design\DaVinci Resolve", r"Blackmagic Design\DaVinci Resolve\Resolve.exe".into()],
             "kdenlive.exe" | "kdenlive" => &[r"kdenlive\bin"],
             "cavalry.exe" => &[r"Cavalry"],
-            "opentooz.exe" | "opentooz" | "opentool" => &[r"OpenToonz"],
+            "opentoonz.exe" | "opentoonz" => &[r"OpenToonz"],
             "audacity.exe" | "audacity" => &[r"Audacity"],
             "ardour" => &[r"Ardour\bin"],
             "digikam.exe" | "digikam" => &[r"digiKam\bin"],
@@ -1102,7 +1102,6 @@ fn check_flatpak_snap(alt: &str) -> bool {
         ("digikam", "org.kde.digikam"),
         ("handbrake", "fr.handbrake.ghb"),
         ("inkscape", "org.inkscape.Inkscape"),
-        ("blender", "org.blender.Blender"),
     ];
     for (key, id) in flatpak_map {
         if alt_lower.contains(key) {

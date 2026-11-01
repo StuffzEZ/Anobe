@@ -13,7 +13,7 @@ import {
 
 function DocIcon({ app, size = 34, adobify = false }: { app: AltApp; size?: number; adobify?: boolean }) {
   const [err, setErr] = useState(false);
-  const src = adobify && (app as any).adobeIcon ? (app as any).adobeIcon : app.icon;
+  const src = adobify && app.adobeIcon ? app.adobeIcon : app.icon;
   if (!err) {
     return (
       <img
@@ -178,11 +178,11 @@ export default function DocsApp() {
                   </li>
                 ))}
               </ol>
-              {(selected as any).extended?.length > 0 && (
+              {selected.extended?.length > 0 && (
                 <>
                   <h4 style={{margin:"16px 0 8px", fontSize:13, color:"var(--text-2)"}}>Deeper essentials (summarised from official docs)</h4>
                   <ol className="docs-steps">
-                    {(selected as any).extended.map((s: string, i: number) => (
+                    {selected.extended.map((s: string, i: number) => (
                       <li key={`e-${i}`}><span className="step-n" style={{background:"#0f6cbd"}}>{i+1}</span><span>{s}</span></li>
                     ))}
                   </ol>

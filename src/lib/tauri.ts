@@ -99,15 +99,15 @@ export async function openChildWindow(kind: ChildKind, ref: ChildRef, url: strin
 
 /** "Anobe App Installer - {app}": webview of the official install page. Never silent. */
 export const openInstaller = (app: AltApp): Promise<void> =>
-  openChildWindow("installer", { id: app.id, title: app.alt, adobe: app.adobe, icon: app.icon, adobeIcon: (app as any).adobeIcon }, app.installUrl);
+  openChildWindow("installer", { id: app.id, title: app.alt, adobe: app.adobe, icon: app.icon, adobeIcon: app.adobeIcon }, app.installUrl);
 
 /** "Anobe Webapp - {app}": the web app integrated into its own window. */
 export const openWebApp = (app: AltApp): Promise<void> =>
-  openChildWindow("webapp", { id: app.id, title: app.alt, adobe: app.adobe, icon: app.icon, adobeIcon: (app as any).adobeIcon }, app.website);
+  openChildWindow("webapp", { id: app.id, title: app.alt, adobe: app.adobe, icon: app.icon, adobeIcon: app.adobeIcon }, app.website);
 
 /** "Anobe Docs - {app}": official docs site in its own webview. */
 export const openDocsSite = (app: AltApp): Promise<void> =>
-  openChildWindow("docssite", { id: app.id, title: app.alt, adobe: app.adobe, icon: app.icon, adobeIcon: (app as any).adobeIcon }, app.docsUrl);
+  openChildWindow("docssite", { id: app.id, title: app.alt, adobe: app.adobe, icon: app.icon, adobeIcon: app.adobeIcon }, app.docsUrl);
 
 export type DocsTab = "guide" | "docs";
 
