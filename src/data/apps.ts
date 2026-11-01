@@ -164,7 +164,7 @@ export const APPS: AltApp[] = [
       "Import your catalog folder — darktable is non-destructive like Lightroom.",
       "Lighttable ≈ Library, Darkroom ≈ Develop. Styles replace presets.",
       "Copy your RAWs + .xmp sidecars together so edits travel with the files.",
-      "Export with watermark/式 resize presets for web vs print.",
+      "Export with watermark / resize presets for web vs print.",
     ],
     extended: [
       "Build Smart Collections from ratings.",
